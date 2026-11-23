@@ -28,6 +28,16 @@ function savePlayers() {
 const LEVEL_XP = [0, 100, 250, 450, 700, 1000];
 function levelOf(xp) { let l = 1; for (let i = 0; i < LEVEL_XP.length; i++) if (xp >= LEVEL_XP[i]) l = i + 1; return l; }
 function getPlayer(token) { return token && players[token] ? players[token] : null; }
+function friendsOf(pl) {
+  const out = [];
+  const fr = (pl && pl.friends) || {};
+  for (const t of Object.keys(fr)) {
+    const f = players[t];
+    if (!f || !f.name) continue;
+    out.push({ name: f.name, avatar: f.avatar, level: levelOf(f.xp || 0), online: Date.now() - (f.lastSeen || 0) < 25000 });
+  }
+  return out;
+}
 
 /* ---------------- cards ---------------- */
 const SUITS = ['S', 'H', 'D', 'C']; // spades, hearts, diamonds, clubs
@@ -317,9 +327,12 @@ function stateFor(room, token) {
       bot: !!s.bot, botControlled: !!s.botControlled, empty: !s.token && !s.bot,
       isMe: i === mySeat, connected: s.bot ? true : (Date.now() - (s.lastSeen || 0) < 12000),
       cardCount: m ? m.hands[i].length : 0, takenPts: m ? m.taken[i] : 0,
-      snapped: m ? !!m.snapUsed[i] : false, passed: m ? !!m.passCards[i] : false
+      snapped: m ? !!m.snapUsed[i] : false, passed: m ? !!m.passCards[i] : false,
+      level: (s.token && !s.bot && players[s.token]) ? levelOf(players[s.token].xp || 0) : null,
+      friend: !!(s.token && ((getPlayer(token) || {}).friends || {})[s.token])
     })),
     emojis: room.emojis || {},
+    chat: (room.chat || []).slice(-40),
     me: null, play: null, scores: null, matchInfo: null
   };
   if (mySeat >= 0 && m) {
@@ -358,6 +371,7 @@ const server = http.createServer(async (req, res) => {
       const token = url.searchParams.get('token') || ''; const code = (url.searchParams.get('code') || '').toUpperCase();
       const room = rooms.get(code); const pl = getPlayer(token);
       if (!pl) return send(res, 401, { error: 'اعمل بروفايل الأول' });
+      pl.lastSeen = Date.now();
       if (!room) return send(res, 404, { error: 'الغرفة مش موجودة' });
       const si = seatIndex(room, token);
       if (si < 0) return send(res, 403, { error: 'انت مش في الغرفة دي' });
@@ -371,16 +385,18 @@ const server = http.createServer(async (req, res) => {
 
     if (p === '/api/profile') {
       let t = token;
-      if (!t || !players[t]) { t = crypto.randomBytes(16).toString('hex'); players[t] = { name: '', avatar: '🦊', xp: 0, coins: 0 }; }
+      if (!t || !players[t]) { t = crypto.randomBytes(16).toString('hex'); players[t] = { name: '', avatar: '🦊', xp: 0, coins: 0, friends: {}, lastSeen: Date.now() }; }
       const pl = players[t];
       if (typeof b.name === 'string' && b.name.trim()) pl.name = b.name.trim().slice(0, 24);
       if (typeof b.avatar === 'string' && b.avatar) pl.avatar = b.avatar.slice(0, 8);
+      pl.lastSeen = Date.now();
       savePlayers();
-      return send(res, 200, { ok: true, token: t, profile: { name: pl.name, avatar: pl.avatar, xp: pl.xp, coins: pl.coins, level: levelOf(pl.xp) } });
+      return send(res, 200, { ok: true, token: t, profile: { name: pl.name, avatar: pl.avatar, xp: pl.xp, coins: pl.coins, level: levelOf(pl.xp), friends: friendsOf(pl) } });
     }
     const pl = getPlayer(token);
     if (!pl) return send(res, 401, { error: 'اعمل بروفايل الأول' });
     if (!pl.name) return send(res, 400, { error: 'اكتب اسمك الأول' });
+    pl.lastSeen = Date.now();
 
     if (p === '/api/create-room') {
       const code = newCode();
@@ -389,7 +405,7 @@ const server = http.createServer(async (req, res) => {
         timer: [0, 10, 15, 20, 30].includes(+b.timer) ? +b.timer : 30,
         fillBots: b.fillBots !== false,
         seats: [makeSeat(), makeSeat(), makeSeat(), makeSeat()],
-        match: null, phase: 'lobby', version: 1, updatedAt: Date.now(), emojis: {}
+        match: null, phase: 'lobby', version: 1, updatedAt: Date.now(), emojis: {}, chat: []
       };
       room.seats[0].token = token; room.seats[0].name = pl.name; room.seats[0].avatar = pl.avatar; room.seats[0].lastSeen = Date.now();
       rooms.set(code, room);
@@ -424,6 +440,24 @@ const server = http.createServer(async (req, res) => {
       }
       bump(room);
       return send(res, 200, { ok: true });
+    }
+    if (p === '/api/chat') {
+      const text = (b.text || '').toString().trim().slice(0, 300);
+      if (!text) return send(res, 400, { error: 'اكتب رسالة الأول' });
+      room.chat = room.chat || [];
+      room.chat.push({ seat: si, name: room.seats[si].name, avatar: room.seats[si].avatar, text, at: Date.now() });
+      if (room.chat.length > 80) room.chat = room.chat.slice(-80);
+      bump(room);
+      return send(res, 200, { ok: true });
+    }
+    if (p === '/api/add-friend') {
+      const target = room.seats[+b.seat];
+      if (!target || !target.token || target.bot) return send(res, 400, { error: 'مينفعش تضيف البوت' });
+      if (target.token === token) return send(res, 400, { error: 'ده بروفايلك انت' });
+      pl.friends = pl.friends || {};
+      pl.friends[target.token] = true;
+      savePlayers();
+      return send(res, 200, { ok: true, friends: friendsOf(pl) });
     }
     if (p === '/api/start-match') {
       if (room.hostToken !== token) return send(res, 403, { error: 'صاحب الغرفة بس يقدر يبدأ' });
