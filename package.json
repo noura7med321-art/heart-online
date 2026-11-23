@@ -1,0 +1,1 @@
+{"description":"هارت أونلاين — Nour's Heart card game (online rooms)","engines":{"node":"20"},"main":"server.js","name":"heart-online","private":true,"scripts":{"start":"node server.js"},"version":"1.0.0"}
