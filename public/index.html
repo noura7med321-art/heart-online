@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>هارت أونلاين ♥</title>
+<style>
+:root{
+  --felt:#0e6b3a; --felt2:#084d28; --ink:#14201a; --gold:#f5c542; --gold2:#d99a16;
+  --panel:#12241b; --panel2:#1a3325; --line:rgba(255,255,255,.14);
+  --green:#2ecc71; --red:#e74c3c; --txt:#f2f5f3; --muted:#9fb8ab;
+  --cardw:64px; --cardh:90px; --trickw:86px; --trickh:120px;
+}
+*{box-sizing:border-box; -webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+body{font-family:"Segoe UI",Tahoma,Arial,sans-serif;background:#0a1f14;color:var(--txt);min-height:100dvh}
+button{font-family:inherit;cursor:pointer;border:none;border-radius:12px;padding:10px 18px;font-size:16px;font-weight:700;background:var(--gold);color:#231a02;transition:transform .08s}
+button:active{transform:scale(.96)}
+button.ghost{background:rgba(255,255,255,.1);color:var(--txt);border:1px solid var(--line)}
+button:disabled{opacity:.45;cursor:default}
+input,select{font-family:inherit;font-size:16px;padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:rgba(255,255,255,.08);color:var(--txt)}
+input::placeholder{color:var(--muted)}
+h1,h2,h3{margin:0}
+.hidden{display:none!important}
+
+/* ---------- generic screens ---------- */
+.screen{max-width:520px;margin:0 auto;padding:18px 14px 30px}
+.logo{text-align:center;font-size:44px;font-weight:900;margin:14px 0 2px;color:#fff}
+.logo .heart{color:#ff4d6d}
+.tagline{text-align:center;color:var(--muted);margin-bottom:18px}
+.card-panel{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:16px;margin-bottom:14px;box-shadow:0 8px 24px rgba(0,0,0,.35)}
+.card-panel h3{margin-bottom:10px;font-size:19px}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.row>*{flex:1}
+label.f{display:flex;align-items:center;gap:8px;font-size:15px}
+label.f input[type=checkbox]{width:20px;height:20px;flex:0 0 auto}
+.avatars{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}
+.avatars button{flex:0 0 auto;font-size:26px;padding:8px 10px;background:rgba(255,255,255,.08);border:2px solid transparent;border-radius:14px}
+.avatars button.sel{border-color:var(--gold);background:rgba(245,197,66,.18)}
+.profile-chip{display:flex;align-items:center;gap:12px}
+.profile-chip .av{font-size:40px;background:rgba(255,255,255,.08);border-radius:50%;width:60px;height:60px;display:flex;align-items:center;justify-content:center}
+.profile-chip .nm{font-size:19px;font-weight:800}
+.profile-chip .sub{color:var(--muted);font-size:13px}
+.code-big{font-size:34px;font-weight:900;letter-spacing:6px;text-align:center;color:var(--gold);background:rgba(0,0,0,.3);border:1.5px dashed rgba(245,197,66,.55);border-radius:14px;padding:10px;margin:10px 0}
+.seatlist{display:flex;flex-direction:column;gap:8px;margin:10px 0}
+.seatrow{display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.06);border:1px solid var(--line);border-radius:12px;padding:8px 12px}
+.seatrow .av{font-size:26px}
+.seatrow .who{flex:1;font-weight:700}
+.seatrow .tag{font-size:12px;color:var(--muted)}
+.err{background:rgba(231,76,60,.16);border:1px solid rgba(231,76,60,.5);color:#ffb3aa;border-radius:10px;padding:8px 12px;margin:8px 0;font-size:14px}
+.okmsg{background:rgba(46,204,113,.14);border:1px solid rgba(46,204,113,.45);color:#a9ecc5;border-radius:10px;padding:8px 12px;margin:8px 0;font-size:14px}
+.small{font-size:13px;color:var(--muted)}
+
+/* ---------- match ---------- */
+#matchView{max-width:1060px;margin:0 auto;padding:6px 6px 10px}
+.topbar{display:flex;align-items:center;gap:6px;padding:4px 2px 8px;flex-wrap:nowrap}
+.topbar button{padding:7px 12px;font-size:15px;border-radius:10px}
+.chip{background:rgba(255,255,255,.09);border:1px solid var(--line);border-radius:999px;padding:5px 11px;font-size:13.5px;font-weight:700;white-space:nowrap}
+.spacer{flex:1}
+#myScoreChip{font-weight:900;font-size:15px;border-radius:999px;padding:5px 12px;background:rgba(255,255,255,.09);border:1px solid var(--line);min-width:40px;text-align:center}
+#myScoreChip.ahead{background:rgba(46,204,113,.22);border-color:var(--green);color:#7dffa9;box-shadow:0 0 12px rgba(46,204,113,.75)}
+#myScoreChip.behind{background:rgba(231,76,60,.22);border-color:var(--red);color:#ff9d92;box-shadow:0 0 12px rgba(231,76,60,.75)}
+.table{position:relative;border-radius:26px;background:radial-gradient(ellipse at 50% 38%,#128a48 0%,var(--felt) 55%,var(--felt2) 100%);box-shadow:inset 0 0 60px rgba(0,0,0,.5),0 14px 34px rgba(0,0,0,.45);height:calc(100dvh - 74px);min-height:520px;overflow:hidden;border:3px solid #5d3d17}
+/* seats */
+.seat{position:absolute;display:flex;flex-direction:column;align-items:center;gap:2px;width:86px;z-index:5;text-align:center}
+.seat.corner{top:10px;left:10px}
+.seat.top{top:10px;left:50%;transform:translateX(-50%)}
+.seat.left{left:6px;top:48%;transform:translateY(-50%)}
+.seat.right{right:6px;top:48%;transform:translateY(-50%)}
+.avwrap{position:relative;width:52px;height:52px}
+.avring{position:absolute;inset:-4px;border-radius:50%;background:conic-gradient(var(--gold) 0deg, rgba(255,255,255,.12) 0deg)}
+.avring .inner{position:absolute;inset:3px;border-radius:50%;background:#0c3520;display:flex;align-items:center;justify-content:center;font-size:27px;overflow:hidden}
+.seat.turn .avring{box-shadow:0 0 16px 3px rgba(245,197,66,.85)}
+.pts-badge{position:absolute;top:-7px;left:-7px;z-index:3;background:#fff;color:#14201a;border:2px solid var(--gold2);min-width:23px;height:23px;border-radius:999px;font-size:13px;font-weight:900;display:flex;align-items:center;justify-content:center;padding:0 4px;box-shadow:0 2px 6px rgba(0,0,0,.4)}
+.seat .sname{font-size:12.5px;font-weight:800;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.7);max-width:86px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.you-tag{background:linear-gradient(180deg,var(--gold),var(--gold2));color:#231a02;font-size:11px;font-weight:900;border-radius:999px;padding:1px 9px;box-shadow:0 2px 6px rgba(0,0,0,.4)}
+.bot-tag{font-size:11px;color:#cfe6d8}
+.seat .bubble{position:absolute;top:-16px;inset-inline-end:-20px;font-size:24px;z-index:6;filter:drop-shadow(0 2px 3px rgba(0,0,0,.5))}
+.qhint{font-size:10.5px;background:#000;color:var(--gold);border:1px solid var(--gold2);border-radius:6px;padding:0 5px;font-weight:900}
+/* trick zone — centred, enlarged played cards, clear of all seats */
+.trick{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:min(336px,calc(100% - 148px));height:44%;min-height:236px;z-index:2;background:rgba(0,0,0,.14);border:1.5px solid rgba(255,255,255,.16);border-radius:28px;box-shadow:inset 0 0 30px rgba(0,0,0,.35)}
+.trick .slot{position:absolute;display:flex;align-items:center;justify-content:center}
+.trick .slot.me{left:50%;bottom:8px;transform:translateX(-50%)}
+.trick .slot.partner{left:50%;top:8px;transform:translateX(-50%)}
+.trick .slot.right{right:8px;top:50%;transform:translateY(-50%)}
+.trick .slot.left{left:8px;top:50%;transform:translateY(-50%)}
+/* cards */
+.card{width:var(--cardw);height:var(--cardh);border-radius:8px;background:#fff;color:var(--ink);border:1px solid #cfcfcf;box-shadow:0 4px 10px rgba(0,0,0,.38);position:relative;flex:0 0 auto;user-select:none;-webkit-user-select:none;overflow:hidden;font-weight:900}
+.card .idx{position:absolute;top:3px;left:5px;font-size:19px;line-height:1;text-align:center}
+.card .idx .su{display:block;font-size:16px;margin-top:1px}
+.card .big{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:44px}
+.card .idx2{position:absolute;bottom:3px;right:5px;font-size:13px;transform:rotate(180deg);line-height:1;text-align:center}
+.card.red{color:#d21f3c}
+.card.trickcard{width:var(--trickw);height:var(--trickh)}
+.card.trickcard .idx{font-size:24px}.card.trickcard .idx .su{font-size:20px}.card.trickcard .big{font-size:58px}.card.trickcard .idx2{font-size:15px}
+.card.mini{width:27px;height:38px;border-radius:5px}
+.card.mini .idx{font-size:10.5px;top:2px;left:3px}.card.mini .idx .su{font-size:9px}.card.mini .big{display:none}.card.mini .idx2{display:none}
+.card.winner{box-shadow:0 0 0 3px var(--gold),0 0 16px 3px rgba(245,197,66,.8)}
+/* hand — flush to bottom edge, NO backdrop */
+.hand-zone{position:absolute;left:50%;transform:translateX(-50%);width:max-content;max-width:calc(100% - 8px);bottom:2px;z-index:30;background:none;border:none;box-shadow:none;padding:6px 10px 4px}
+.hand{display:flex;direction:ltr;align-items:flex-end;min-height:calc(var(--cardh) + 14px);padding-top:12px}
+.hand .card{margin-left:-34px;cursor:pointer;transition:transform .12s ease}
+.hand .card:first-child{margin-left:0}
+.hand .card:hover{transform:translateY(-6px)}
+.hand .card.sel{transform:translateY(-16px);box-shadow:0 0 0 3px var(--gold),0 10px 18px rgba(0,0,0,.45)}
+.hand .card:active{cursor:grabbing}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
+.hand .card.shake{animation:shake .25s ease 2}
+/* last trick small box inside table, next to emoji button */
+.lasttrick{position:absolute;top:10px;right:62px;z-index:8;display:flex;gap:2px;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.18);border-radius:9px;padding:3px 4px;min-height:46px;align-items:center}
+.lasttrick .empty{width:27px;height:38px;border:1.2px dashed rgba(255,255,255,.25);border-radius:5px}
+#emojiBtn{position:absolute;top:10px;right:10px;z-index:9;width:44px;height:44px;border-radius:50%;font-size:21px;padding:0;background:rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.25)}
+.emoji-tray{position:absolute;top:62px;right:10px;z-index:40;background:rgba(10,25,16,.95);border:1px solid var(--line);border-radius:14px;padding:8px;display:grid;grid-template-columns:repeat(6,40px);gap:4px;box-shadow:0 10px 26px rgba(0,0,0,.5)}
+.emoji-tray button{background:rgba(255,255,255,.07);font-size:20px;padding:5px 0;border-radius:9px}
+/* passing pill — under the right opponent, passing phase only */
+.pass-pill{position:absolute;right:8px;bottom:136px;z-index:7;background:rgba(0,0,0,.55);border:1.5px solid var(--gold);color:#fff;border-radius:999px;padding:6px 13px;font-size:14px;font-weight:800;box-shadow:0 4px 12px rgba(0,0,0,.4)}
+.pass-pill b{color:var(--gold)}
+/* snap */
+#snapBtn{position:absolute;left:10px;bottom:10px;z-index:38;width:48px;height:48px;border-radius:50%;font-size:22px;padding:0;background:rgba(0,0,0,.4);border:1.5px solid rgba(245,197,66,.6)}
+#snapBtn.armed{background:var(--gold);box-shadow:0 0 16px 3px rgba(245,197,66,.8)}
+.snap-power{position:absolute;left:10px;bottom:66px;z-index:39;width:118px;background:rgba(0,0,0,.6);border:1px solid var(--gold2);border-radius:999px;padding:4px 6px;display:flex;align-items:center;gap:6px}
+.snap-power .track{flex:1;height:9px;background:rgba(255,255,255,.15);border-radius:99px;overflow:hidden}
+.snap-power .fill{height:100%;width:0%;background:linear-gradient(90deg,#ffb03a,var(--gold));border-radius:99px}
+.snap-power span{font-size:12px;font-weight:900;color:var(--gold);min-width:30px;text-align:center}
+/* round banner */
+.round-banner{position:absolute;left:50%;top:16%;transform:translateX(-50%);z-index:45;background:rgba(8,22,14,.92);border:1.5px solid var(--gold);border-radius:16px;padding:12px 22px;text-align:center;font-weight:900;font-size:17px;box-shadow:0 12px 30px rgba(0,0,0,.5)}
+.round-banner .g{color:#7dffa9}.round-banner .r{color:#ff9d92}
+/* modals */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.66);z-index:100;display:flex;align-items:center;justify-content:center;padding:14px}
+.modal{background:var(--panel);border:1px solid var(--line);border-radius:20px;max-width:480px;width:100%;max-height:88dvh;overflow:auto;padding:18px;box-shadow:0 20px 50px rgba(0,0,0,.6)}
+.modal h3{margin-bottom:12px;font-size:20px}
+table.score{width:100%;border-collapse:collapse;font-size:14px;margin-top:10px}
+table.score th,table.score td{border-bottom:1px solid var(--line);padding:6px 4px;text-align:center}
+.vs{display:flex;gap:10px;text-align:center}
+.vs .team{flex:1;border-radius:14px;padding:12px 6px}
+.vs .green{background:rgba(46,204,113,.15);border:1.5px solid var(--green)}
+.vs .redt{background:rgba(231,76,60,.13);border:1.5px solid var(--red)}
+.vs .big{font-size:34px;font-weight:900}
+.toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:rgba(8,22,14,.94);border:1px solid var(--gold2);color:#fff;border-radius:999px;padding:8px 18px;font-weight:800;z-index:200;box-shadow:0 8px 22px rgba(0,0,0,.5)}
+@media (max-width:640px){
+  :root{--cardw:55px;--cardh:78px;--trickw:67px;--trickh:94px}
+  .table{min-height:500px;border-radius:20px}
+  .seat{width:62px}
+  .seat.corner{top:6px;left:6px}.seat.top{top:6px}.seat.left{left:4px}.seat.right{right:4px}
+  .avwrap{width:44px;height:44px}.avring .inner{font-size:22px}
+  .seat .sname{font-size:11px;max-width:62px}
+  .hand .card{margin-left:-31px}
+  /* zone narrowed so played cards keep >=26px clear of the left/right seat blocks at 390px wide */
+  .trick{width:min(336px,calc(100% - 168px));min-height:216px}
+  #snapBtn{bottom:126px;left:6px}
+  .snap-power{bottom:182px;left:6px}
+  .pass-pill{bottom:128px;right:6px;font-size:13px}
+  .lasttrick{right:58px;top:6px}
+  #emojiBtn{top:6px;right:6px}
+  .chip{font-size:12px;padding:4px 8px}
+  .topbar button{padding:6px 9px;font-size:14px}
+}
+</style>
+</head>
+<body>
+
+<!-- ======= PROFILE ======= -->
+<div id="viewProfile" class="screen hidden">
+  <div class="logo">هارت <span class="heart">♥</span></div>
+  <div class="tagline">لعبة هارت أونلاين — اعمل بروفايلك وابدأ</div>
+  <div class="card-panel">
+    <h3>اسمك</h3>
+    <input id="inName" type="text" maxlength="24" placeholder="اكتب اسمك" style="width:100%">
+    <h3 style="margin-top:14px">اختار صورتك</h3>
+    <div class="avatars" id="avatarPick"></div>
+    <button id="btnSaveProfile" style="width:100%">حفظ وابدأ</button>
+    <div id="profileErr"></div>
+  </div>
+</div>
+
+<!-- ======= HOME ======= -->
+<div id="viewHome" class="screen hidden">
+  <div class="logo">هارت <span class="heart">♥</span></div>
+  <div class="tagline">العب مع صحابك أونلاين — اعمل غرفة وابعت الكود</div>
+  <div class="card-panel">
+    <div class="profile-chip">
+      <div class="av" id="homeAvatar">🦊</div>
+      <div style="flex:1">
+        <div class="nm" id="homeName">—</div>
+        <div class="sub" id="homeStats">—</div>
+      </div>
+      <button class="ghost" id="btnEditProfile">تعديل</button>
+    </div>
+  </div>
+  <div class="card-panel">
+    <h3>إنشاء غرفة</h3>
+    <div class="row">
+      <input id="inRoomPass" type="text" placeholder="كلمة سر (اختياري)">
+      <select id="inTimer">
+        <option value="10">⏱ 10 ثواني</option>
+        <option value="15">⏱ 15 ثانية</option>
+        <option value="20">⏱ 20 ثانية</option>
+        <option value="30" selected>⏱ 30 ثانية</option>
+        <option value="0">⏱ من غير حد</option>
+      </select>
+    </div>
+    <label class="f" style="margin:10px 0"><input type="checkbox" id="inFillBots" checked> املأ المقاعد الفاضية ببوتات 🤖</label>
+    <button id="btnCreate" style="width:100%">إنشاء غرفة</button>
+    <div id="createErr"></div>
+  </div>
+  <div class="card-panel">
+    <h3>انضم لغرفة</h3>
+    <div class="row">
+      <input id="inJoinCode" type="text" maxlength="5" placeholder="كود الغرفة" style="text-transform:uppercase;letter-spacing:3px">
+      <input id="inJoinPass" type="text" placeholder="كلمة السر (لو فيه)">
+    </div>
+    <button id="btnJoin" class="ghost" style="width:100%;margin-top:10px">انضم</button>
+    <div id="joinErr"></div>
+  </div>
+</div>
+
+<!-- ======= LOBBY ======= -->
+<div id="viewLobby" class="screen hidden">
+  <div class="logo" style="font-size:32px">الغرفة</div>
+  <div class="card-panel">
+    <div class="small" style="text-align:center">كود الغرفة — ابعته لصحابك</div>
+    <div class="code-big" id="lobbyCode">-----</div>
+    <div class="row">
+      <button id="btnCopyLink">📋 نسخ لينك الدعوة</button>
+      <button class="ghost" id="btnCopyCode">نسخ الكود</button>
+    </div>
+    <div id="copyMsg"></div>
+    <h3 style="margin-top:14px">اللاعيبة</h3>
+    <div class="seatlist" id="lobbySeats"></div>
+    <div id="lobbyErr"></div>
+    <button id="btnStart" style="width:100%" class="hidden">ابدأ الماتش</button>
+    <div class="small hidden" id="lobbyWait" style="text-align:center;margin-top:8px">مستني صاحب الغرفة يبدأ…</div>
+    <button class="ghost" id="btnLeaveLobby" style="width:100%;margin-top:10px">سيب الغرفة</button>
+  </div>
+</div>
+
+<!-- ======= MATCH ======= -->
+<div id="matchView" class="hidden">
+  <div class="topbar">
+    <button id="btnMenu" class="ghost">☰</button>
+    <div class="chip" id="levelChip">⭐ 1 مبتدئ</div>
+    <div class="chip" id="coinsChip">🪙 0</div>
+    <div class="spacer"></div>
+    <button id="btnScore">🏆 النتيجة</button>
+    <span id="myScoreChip">0</span>
+    <div class="chip" id="roundChip">راوند 1 من 7</div>
+  </div>
+  <div class="table" id="table">
+    <div id="seats"></div>
+    <div class="trick" id="trickZone">
+      <div class="slot me" data-slot="0"></div>
+      <div class="slot right" data-slot="1"></div>
+      <div class="slot partner" data-slot="2"></div>
+      <div class="slot left" data-slot="3"></div>
+    </div>
+    <div class="lasttrick" id="lastTrick"></div>
+    <button id="emojiBtn" title="إيموجي">😀</button>
+    <div class="emoji-tray hidden" id="emojiTray"></div>
+    <div class="pass-pill hidden" id="passPill">بدّل 4 كروت — <b id="passCount">اخترت 0 من 4</b></div>
+    <button id="snapBtn" title="طرقعة">💥</button>
+    <div class="snap-power hidden" id="snapPower"><div class="track"><div class="fill" id="snapFill"></div></div><span id="snapTxt"></span></div>
+    <div class="hand-zone"><div class="hand" id="hand"></div></div>
+    <div class="round-banner hidden" id="roundBanner"></div>
+  </div>
+</div>
+
+<!-- ======= SCORE MODAL ======= -->
+<div id="scoreModal" class="modal-bg hidden"><div class="modal">
+  <h3>🏆 النتيجة</h3>
+  <div class="vs">
+    <div class="team green"><div>الفريق الأخضر</div><div class="big" id="scoreGreen">0</div></div>
+    <div class="team redt"><div>الفريق الأحمر</div><div class="big" id="scoreRed">0</div></div>
+  </div>
+  <table class="score"><thead><tr><th>راوند</th><th>الأخضر لبس</th><th>الأحمر لبس</th><th>نقط الأخضر</th><th>نقط الأحمر</th></tr></thead><tbody id="scoreRows"></tbody></table>
+  <button class="ghost" id="btnCloseScore" style="width:100%;margin-top:14px">اقفل</button>
+</div></div>
+
+<!-- ======= END MODAL ======= -->
+<div id="endModal" class="modal-bg hidden"><div class="modal" style="text-align:center">
+  <h3 id="endTitle">انتهى الماتش</h3>
+  <div class="vs">
+    <div class="team green"><div>الفريق الأخضر</div><div class="big" id="endGreen">0</div></div>
+    <div class="team redt"><div>الفريق الأحمر</div><div class="big" id="endRed">0</div></div>
+  </div>
+  <div id="endRewards" style="margin:14px 0;font-weight:800"></div>
+  <button id="btnRematch" style="width:100%" class="hidden">العب تاني</button>
+  <button class="ghost" id="btnEndHome" style="width:100%;margin-top:8px">الرئيسية</button>
+</div></div>
+
+<!-- ======= MENU MODAL ======= -->
+<div id="menuModal" class="modal-bg hidden"><div class="modal">
+  <h3>☰ القايمة</h3>
+  <label class="f" style="margin-bottom:12px">ترتيب الكروت:
+    <select id="inSort" style="flex:1">
+      <option value="bigRight">الكبير على اليمين</option>
+      <option value="bigLeft">الكبير على الشمال</option>
+    </select>
+  </label>
+  <button class="ghost" id="btnMenuScore" style="width:100%">🏆 النتيجة</button>
+  <button class="ghost" id="btnLeaveMatch" style="width:100%;margin-top:8px">سيب الماتش</button>
+  <button id="btnCloseMenu" style="width:100%;margin-top:12px">اقفل</button>
+</div></div>
+
+<div id="toast" class="toast hidden"></div>
+
+<script>
+'use strict';
+const $ = id => document.getElementById(id);
+const AVATARS = ['🦊','🐼','🦁','🐯','🐸','🦉','🦄','🐙','👨','👩','🧑','👤'];
+const LEVEL_NAMES = ['مبتدئ','هاوٍ','متقدم','محترف','خبير','أسطورة'];
+const LEVEL_XP = [0,100,250,450,700,1000];
+const EMOJIS = ['😄','😂','😮','😎','🔥','👏','💪','😉','🎉','😅','🙏','💥','❤️','👍','😴','🤔'];
+const SUIT_SYM = {S:'♠',H:'♥',D:'♦',C:'♣'};
+const RANK_TXT = {11:'J',12:'Q',13:'K',14:'A'};
+
+let token = localStorage.getItem('heart_token') || '';
+let profile = null;
+let roomCode = '';
+let st = null;               // latest server state
+let lastVersion = -1;
+let selPass = new Set();
+let passTimer = null;
+let snapArmed = false;
+let suppressClick = false;
+let sortMode = localStorage.getItem('heart_sort') || 'bigRight';
+let pollInt = null;
+
+function levelOf(xp){let l=1;for(let i=0;i<LEVEL_XP.length;i++)if(xp>=LEVEL_XP[i])l=i+1;return l;}
+function rankTxt(r){return RANK_TXT[r]||(''+r);}
+function parseCard(c){return {s:c[0], r:parseInt(c.slice(1),10)};}
+function isRed(c){const s=c[0];return s==='H'||s==='D';}
+function cardEl(code, cls){
+  const p = parseCard(code);
+  const d = document.createElement('div');
+  d.className = 'card ' + (cls||'') + (isRed(code)?' red':'');
+  d.dataset.card = code;
+  d.innerHTML = '<div class="idx">'+rankTxt(p.r)+'<span class="su">'+SUIT_SYM[p.s]+'</span></div><div class="big">'+SUIT_SYM[p.s]+'</div><div class="idx2">'+rankTxt(p.r)+'<br>'+SUIT_SYM[p.s]+'</div>';
+  return d;
+}
+function toast(msg, ms){
+  const t = $('toast'); t.textContent = msg; t.classList.remove('hidden');
+  clearTimeout(t._h); t._h = setTimeout(()=>t.classList.add('hidden'), ms||2200);
+}
+async function api(path, body){
+  const r = await fetch(path, {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body||{})});
+  const j = await r.json().catch(()=>({}));
+  if(!r.ok) throw new Error(j.error || 'حصلت مشكلة');
+  return j;
+}
+function show(view){
+  for(const v of ['viewProfile','viewHome','viewLobby','matchView']) $(v).classList.add('hidden');
+  $(view).classList.remove('hidden');
+}
+
+/* ---------- profile ---------- */
+let pickedAvatar = localStorage.getItem('heart_avatar') || '🦊';
+function buildAvatarPick(){
+  const box = $('avatarPick'); box.innerHTML = '';
+  for(const a of AVATARS){
+    const b = document.createElement('button'); b.textContent = a;
+    if(a===pickedAvatar) b.className='sel';
+    b.onclick = ()=>{ pickedAvatar=a; buildAvatarPick(); };
+    box.appendChild(b);
+  }
+}
+async function saveProfile(){
+  const name = $('inName').value.trim();
+  if(!name){ $('profileErr').innerHTML = '<div class="err">اكتب اسمك الأول</div>'; return; }
+  try{
+    const j = await api('/api/profile', {token, name, avatar: pickedAvatar});
+    token = j.token; profile = j.profile;
+    localStorage.setItem('heart_token', token);
+    localStorage.setItem('heart_avatar', pickedAvatar);
+    enterHome();
+  }catch(e){ $('profileErr').innerHTML = '<div class="err">'+e.message+'</div>'; }
+}
+function enterHome(){
+  $('homeAvatar').textContent = profile.avatar;
+  $('homeName').textContent = profile.name;
+  const lvl = levelOf(profile.xp);
+  $('homeStats').textContent = '⭐ المستوى '+lvl+' — '+LEVEL_NAMES[lvl-1]+' · '+profile.xp+' XP · 🪙 '+profile.coins;
+  show('viewHome');
+  const q = new URLSearchParams(location.search).get('room');
+  if(q){ $('inJoinCode').value = q.toUpperCase(); }
+}
+
+/* ---------- rooms ---------- */
+async function createRoom(){
+  try{
+    const j = await api('/api/create-room', {token, password: $('inRoomPass').value, timer: +$('inTimer').value, fillBots: $('inFillBots').checked});
+    roomCode = j.code; enterLobby();
+  }catch(e){ $('createErr').innerHTML = '<div class="err">'+e.message+'</div>'; }
+}
+async function joinRoom(){
+  const code = $('inJoinCode').value.trim().toUpperCase();
+  if(code.length!==5){ $('joinErr').innerHTML = '<div class="err">اكتب كود الغرفة (5 حروف)</div>'; return; }
+  try{
+    await api('/api/join-room', {token, code, password: $('inJoinPass').value});
+    roomCode = code; enterLobby();
+  }catch(e){ $('joinErr').innerHTML = '<div class="err">'+e.message+'</div>'; }
+}
+function enterLobby(){
+  show('viewLobby');
+  $('lobbyCode').textContent = roomCode;
+  startPolling();
+}
+async function leaveRoom(){
+  stopPolling();
+  try{ await api('/api/leave-room', {token, code: roomCode}); }catch(e){}
+  roomCode=''; st=null; lastVersion=-1; selPass.clear();
+  $('endModal').classList.add('hidden');
+  enterHome();
+}
+function copyText(txt, msg){
+  const done = ()=>{ $('copyMsg').innerHTML = '<div class="okmsg">'+msg+'</div>'; setTimeout(()=>$('copyMsg').innerHTML='',2500); };
+  if(navigator.clipboard && navigator.clipboard.writeText){ navigator.clipboard.writeText(txt).then(done).catch(()=>{ prompt('انسخ:', txt); }); }
+  else prompt('انسخ:', txt);
+}
+
+/* ---------- polling ---------- */
+function startPolling(){
+  stopPolling();
+  pollOnce();
+  pollInt = setInterval(pollOnce, 1000);
+}
+function stopPolling(){ if(pollInt){ clearInterval(pollInt); pollInt=null; } }
+async function pollOnce(){
+  if(!roomCode || !token) return;
+  try{
+    const r = await fetch('/api/state?token='+encodeURIComponent(token)+'&code='+encodeURIComponent(roomCode));
+    const j = await r.json().catch(()=>({}));
+    if(!r.ok){ if(r.status===404||r.status===403){ stopPolling(); toast('الغرفة اتقفلت'); roomCode=''; enterHome(); } return; }
+    const phaseChanged = !st || st.phase !== j.phase;
+    st = j;
+    if(j.version !== lastVersion || phaseChanged){ lastVersion = j.version; render(); }
+  }catch(e){ /* network blip — keep polling */ }
+}
+
+/* ---------- render ---------- */
+function rel(seat){ return st && st.me ? (seat - st.me.seat + 4) % 4 : seat; }
+function render(){
+  if(!st) return;
+  if(st.phase === 'lobby'){ renderLobby(); show('viewLobby'); return; }
+  show('matchView');
+  renderMatch();
+}
+function renderLobby(){
+  $('lobbyCode').textContent = roomCode;
+  const box = $('lobbySeats'); box.innerHTML = '';
+  st.seats.forEach(s=>{
+    const row = document.createElement('div'); row.className='seatrow';
+    if(s.empty){ row.innerHTML = '<span class="av">⬜</span><span class="who" style="color:var(--muted)">مقعد فاضي</span>'; }
+    else{
+      row.innerHTML = '<span class="av">'+s.avatar+'</span><span class="who">'+escapeHtml(s.name)+(s.bot?' 🤖':'')+'</span><span class="tag">'+(s.isMe?'انت':(s.bot?'بوت':'لاعب'))+(st.room.isHost && s.isMe?' · صاحب الغرفة':'')+'</span>';
+    }
+    box.appendChild(row);
+  });
+  $('btnStart').classList.toggle('hidden', !st.room.isHost);
+  $('lobbyWait').classList.toggle('hidden', st.room.isHost);
+}
+function escapeHtml(s){ return (s||'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+function renderMatch(){
+  const m = st.matchInfo, mySeat = st.me.seat;
+  // top bar
+  const lvl = levelOf(profile.xp);
+  $('levelChip').textContent = '⭐ '+lvl+' '+LEVEL_NAMES[lvl-1];
+  $('coinsChip').textContent = '🪙 '+profile.coins;
+  const myTeam = mySeat % 2;
+  const mine = st.scores.cum[myTeam], theirs = st.scores.cum[1-myTeam];
+  const chip = $('myScoreChip'); chip.textContent = mine;
+  chip.className = mine>theirs ? 'ahead' : (mine<theirs ? 'behind' : '');
+  chip.id = 'myScoreChip';
+  $('roundChip').textContent = m.tiebreak ? ('راوند '+m.round+' • كسر تعادل') : ('راوند '+m.round+' من 7');
+  // seats
+  const seatsBox = $('seats'); seatsBox.innerHTML = '';
+  const posByRel = {0:'corner', 2:'top', 1:'right', 3:'left'};
+  for(const s of st.seats){
+    const r = rel(s.seat);
+    const d = document.createElement('div');
+    d.className = 'seat '+posByRel[r] + (st.play && st.play.current===s.seat && st.phase==='playing' ? ' turn':'');
+    const em = st.emojis && st.emojis[s.seat];
+    const bubble = (em && Date.now()-em.at < 4000) ? '<div class="bubble">'+em.e+'</div>' : '';
+    const hint = (st.me.queenHintSeat === s.seat) ? '<div class="qhint">Q♠ هنا</div>' : '';
+    d.innerHTML =
+      '<div class="avwrap"><div class="avring" data-ring="'+s.seat+'"><div class="inner">'+s.avatar+'</div></div>'+
+      '<div class="pts-badge">'+s.takenPts+'</div>'+bubble+'</div>'+
+      '<div class="sname">'+escapeHtml(s.name)+'</div>'+
+      (s.isMe ? '<div class="you-tag">أنت</div>' : (s.bot || s.botControlled ? '<div class="bot-tag">🤖 بوت</div>' : ''))+
+      (s.snapped ? '<div class="bot-tag">💥</div>' : '') + hint;
+    seatsBox.appendChild(d);
+  }
+  // trick zone
+  document.querySelectorAll('#trickZone .slot').forEach(sl=>{ sl.innerHTML=''; });
+  if(st.play){
+    for(const t of st.play.trick){
+      const slot = document.querySelector('#trickZone .slot[data-slot="'+rel(t.seat)+'"]');
+      if(slot) slot.appendChild(cardEl(t.card,'trickcard'));
+    }
+  }
+  // last trick box
+  const lt = $('lastTrick'); lt.innerHTML = '';
+  if(st.play && st.play.lastTrick){
+    for(const t of st.play.lastTrick.plays){
+      const c = cardEl(t.card,'mini'); if(t.seat===st.play.lastTrick.winner) c.classList.add('winner');
+      lt.appendChild(c);
+    }
+  } else { for(let i=0;i<4;i++){ const e=document.createElement('div'); e.className='empty'; lt.appendChild(e); } }
+  // passing pill
+  const inPassing = st.phase==='passing';
+  $('passPill').classList.toggle('hidden', !inPassing);
+  if(inPassing) $('passCount').textContent = 'اخترت '+selPass.size+' من 4';
+  // hand
+  renderHand();
+  // snap button state
+  $('snapBtn').classList.toggle('armed', snapArmed);
+  $('snapBtn').style.opacity = (st.me.snapUsed ? .35 : 1);
+  // round banner
+  const banner = $('roundBanner');
+  if(st.phase==='roundEnd' && st.scores.lastRound){
+    const lr = st.scores.lastRound;
+    const g = lr.score[myTeam], r = lr.score[1-myTeam];
+    banner.innerHTML = 'راوند '+lr.round+' خلص<br><span class="g">الأخضر '+(g>0?'+':'')+g+'</span> · <span class="r">الأحمر '+(r>0?'+':'')+r+'</span>';
+    banner.classList.remove('hidden');
+  } else banner.classList.add('hidden');
+  // match end
+  if(st.phase==='matchEnd') showEnd(); else $('endModal').classList.add('hidden');
+}
+function sortedHand(hand){
+  const so = {S:0,H:1,D:2,C:3};
+  return hand.slice().sort((a,b)=>{
+    const x=parseCard(a), y=parseCard(b);
+    if(so[x.s]!==so[y.s]) return so[x.s]-so[y.s];
+    return sortMode==='bigRight' ? x.r-y.r : y.r-x.r;
+  });
+}
+function renderHand(){
+  const box = $('hand'); box.innerHTML = '';
+  if(!st.me) return;
+  const hand = sortedHand(st.me.hand);
+  // prune pass selection to cards still in hand
+  for(const c of Array.from(selPass)) if(!st.me.hand.includes(c)) selPass.delete(c);
+  hand.forEach((code,i)=>{
+    const c = cardEl(code,'');
+    c.style.zIndex = i+1;
+    if(selPass.has(code)) c.classList.add('sel');
+    c.addEventListener('click', ()=>onCardTap(code, c));
+    attachLongPress(c, code);
+    box.appendChild(c);
+  });
+  if(st.phase==='passing') $('passCount').textContent = 'اخترت '+selPass.size+' من 4';
+}
+function onCardTap(code, el){
+  if(suppressClick) return;
+  if(!st || !st.me) return;
+  if(st.phase==='passing'){
+    if(st.me.passSubmitted) return;
+    if(selPass.has(code)) selPass.delete(code);
+    else{ if(selPass.size>=4){ el.classList.add('shake'); setTimeout(()=>el.classList.remove('shake'),550); return; } selPass.add(code); }
+    renderHand();
+    clearTimeout(passTimer);
+    if(selPass.size===4){ passTimer = setTimeout(submitPass, 550); }
+    return;
+  }
+  if(st.phase==='playing'){
+    if(st.play.current !== st.me.seat){ el.classList.add('shake'); setTimeout(()=>el.classList.remove('shake'),550); return; }
+    const useSnap = snapArmed && st.play.trick.length===0;
+    playCard(code, useSnap, el);
+  }
+}
+async function submitPass(){
+  if(selPass.size!==4 || !st || st.me.passSubmitted) return;
+  try{ await api('/api/pass', {token, code: roomCode, cards: Array.from(selPass)}); selPass.clear(); pollOnce(); }
+  catch(e){ toast(e.message); }
+}
+async function playCard(code, snap, el){
+  try{
+    await api('/api/play', {token, code: roomCode, card: code, snap: !!snap});
+    if(snap) snapArmed = false;
+    pollOnce();
+  }catch(e){
+    if(el){ el.classList.add('shake'); setTimeout(()=>el.classList.remove('shake'),550); }
+    toast(e.message);
+  }
+}
+/* long-press = snap charge */
+function attachLongPress(el, code){
+  let startT = 0, raf = null, done = false;
+  const HOLD = 650;
+  const canSnap = ()=> st && st.phase==='playing' && st.play && st.play.current===st.me.seat && st.play.trick.length===0 && !st.me.snapUsed;
+  el.addEventListener('pointerdown', ()=>{
+    if(!canSnap()) return;
+    startT = Date.now(); done = false;
+    $('snapPower').classList.remove('hidden'); $('snapTxt').textContent = '';
+    const step = ()=>{
+      const pct = Math.min(100, (Date.now()-startT)/HOLD*100);
+      $('snapFill').style.width = pct+'%';
+      if(pct>=100){ $('snapTxt').textContent = 'سيب!'; done = true; return; }
+      raf = requestAnimationFrame(step);
+    };
+    step();
+    el._snapRaf = raf;
+  });
+  const cancel = fire=>{
+    if(raf) cancelAnimationFrame(raf);
+    $('snapPower').classList.add('hidden'); $('snapFill').style.width = '0%';
+    if(fire && done && canSnap()){ suppressClick = true; setTimeout(()=>suppressClick=false, 350); playCard(code, true, el); }
+  };
+  el.addEventListener('pointerup', ()=>cancel(true));
+  el.addEventListener('pointerleave', ()=>cancel(false));
+  el.addEventListener('pointercancel', ()=>cancel(false));
+}
+/* timer rings — updated on a fast interval from server deadline */
+setInterval(()=>{
+  if(!st || !st.play) return;
+  document.querySelectorAll('.avring').forEach(r=>{ r.style.background = 'conic-gradient(rgba(255,255,255,.12) 0deg, rgba(255,255,255,.12) 360deg)'; });
+  const dl = st.play.turnDeadline, total = (st.play.timerSec||0)*1000;
+  if(!dl || !total) return;
+  let seat = null;
+  if(st.phase==='playing' && st.play.current>=0) seat = st.play.current;
+  else if(st.phase==='passing' && st.me && !st.me.passSubmitted) seat = st.me.seat;
+  if(seat===null) return;
+  const ring = document.querySelector('.avring[data-ring="'+seat+'"]');
+  if(!ring) return;
+  const left = Math.max(0, dl - Date.now());
+  const deg = Math.round(left/total*360);
+  const col = left < 5000 ? '#e74c3c' : '#f5c542';
+  ring.style.background = 'conic-gradient('+col+' '+deg+'deg, rgba(255,255,255,.12) '+deg+'deg)';
+}, 200);
+
+/* ---------- score / end ---------- */
+function teamRows(){
+  const myTeam = st.me.seat % 2;
+  return st.scores.history.map(h=>({
+    round: h.round,
+    gTaken: h.teamTaken[myTeam], rTaken: h.teamTaken[1-myTeam],
+    gScore: h.score[myTeam], rScore: h.score[1-myTeam]
+  }));
+}
+function openScore(){
+  if(!st || !st.scores) return;
+  const myTeam = st.me.seat % 2;
+  $('scoreGreen').textContent = st.scores.cum[myTeam];
+  $('scoreRed').textContent = st.scores.cum[1-myTeam];
+  const tb = $('scoreRows'); tb.innerHTML = '';
+  for(const r of teamRows()){
+    const tr = document.createElement('tr');
+    tr.innerHTML = '<td>'+r.round+'</td><td>'+r.gTaken+'</td><td>'+r.rTaken+'</td><td>'+(r.gScore>0?'+':'')+r.gScore+'</td><td>'+(r.rScore>0?'+':'')+r.rScore+'</td>';
+    tb.appendChild(tr);
+  }
+  $('scoreModal').classList.remove('hidden');
+}
+function showEnd(){
+  const myTeam = st.me.seat % 2;
+  const g = st.scores.cum[myTeam], r = st.scores.cum[1-myTeam];
+  $('endGreen').textContent = g; $('endRed').textContent = r;
+  $('endTitle').textContent = g>r ? '🏆 كسبتوا الماتش!' : 'خسرتوا الماتش — المرة الجاية';
+  const s = st.me.settlement;
+  if(s){
+    profile.xp = s.xp; profile.coins = s.coins;
+    $('endRewards').innerHTML = 'XP: '+(s.xpDelta>0?'+':'')+s.xpDelta+' · 🪙 كوينز: +'+s.coinsDelta+'<br>مستواك دلوقتي: '+levelOf(s.xp)+' — '+LEVEL_NAMES[levelOf(s.xp)-1];
+  } else $('endRewards').textContent = '';
+  $('btnRematch').classList.toggle('hidden', !st.room.isHost);
+  $('endModal').classList.remove('hidden');
+}
+
+/* ---------- wire up ---------- */
+$('btnSaveProfile').onclick = saveProfile;
+$('btnEditProfile').onclick = ()=>{ $('inName').value = profile.name; pickedAvatar = profile.avatar; buildAvatarPick(); show('viewProfile'); };
+$('btnCreate').onclick = createRoom;
+$('btnJoin').onclick = joinRoom;
+$('btnStart').onclick = async ()=>{ try{ await api('/api/start-match', {token, code: roomCode}); pollOnce(); }catch(e){ $('lobbyErr').innerHTML = '<div class="err">'+e.message+'</div>'; } };
+$('btnLeaveLobby').onclick = leaveRoom;
+$('btnCopyCode').onclick = ()=>copyText(roomCode, 'اتنسخ الكود ✓');
+$('btnCopyLink').onclick = ()=>copyText(location.origin+'/?room='+roomCode, 'اتنسخ لينك الدعوة ✓');
+$('btnScore').onclick = openScore;
+$('btnCloseScore').onclick = ()=>$('scoreModal').classList.add('hidden');
+$('btnMenu').onclick = ()=>{ $('inSort').value = sortMode; $('menuModal').classList.remove('hidden'); };
+$('btnCloseMenu').onclick = ()=>$('menuModal').classList.add('hidden');
+$('inSort').onchange = e=>{ sortMode = e.target.value; localStorage.setItem('heart_sort', sortMode); if(st) renderHand(); };
+$('btnMenuScore').onclick = ()=>{ $('menuModal').classList.add('hidden'); openScore(); };
+$('btnLeaveMatch').onclick = ()=>{ $('menuModal').classList.add('hidden'); leaveRoom(); };
+$('btnEndHome').onclick = leaveRoom;
+$('btnRematch').onclick = async ()=>{ try{ await api('/api/start-match', {token, code: roomCode}); $('endModal').classList.add('hidden'); pollOnce(); }catch(e){ toast(e.message); } };
+$('snapBtn').onclick = ()=>{
+  if(!st || !st.me || st.me.snapUsed) return;
+  snapArmed = !snapArmed;
+  $('snapBtn').classList.toggle('armed', snapArmed);
+  if(snapArmed) toast('الطرقعة جاهزة — دوس على كارت الفتحة');
+};
+/* emoji tray */
+(function(){
+  const tray = $('emojiTray');
+  for(const e of EMOJIS){ const b=document.createElement('button'); b.textContent=e; b.onclick=async()=>{ tray.classList.add('hidden'); try{ await api('/api/emoji',{token, code: roomCode, emoji:e}); pollOnce(); }catch(err){} }; tray.appendChild(b); }
+  $('emojiBtn').onclick = ()=>tray.classList.toggle('hidden');
+})();
+
+/* ---------- boot ---------- */
+buildAvatarPick();
+(async function boot(){
+  if(token){
+    try{
+      const j = await api('/api/profile', {token});
+      profile = j.profile;
+      if(profile.name){ enterHome(); return; }
+    }catch(e){ token=''; }
+  }
+  show('viewProfile');
+})();
+</script>
+</body>
+</html>
