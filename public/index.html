@@ -187,6 +187,10 @@ table.score th,table.score td{border-bottom:1px solid var(--line);padding:6px 4p
     <input id="inName" type="text" maxlength="24" placeholder="اكتب اسمك" style="width:100%">
     <h3 style="margin-top:14px">اختار صورتك</h3>
     <div class="avatars" id="avatarPick"></div>
+    <label style="display:flex;gap:8px;align-items:flex-start;margin:12px 0;text-align:start">
+      <input type="checkbox" id="inTerms" style="margin-top:4px">
+      <span class="small">أوافق على <a href="#" id="lnkTerms" style="color:#f5c542">شروط الاستخدام</a> و<a href="#" id="lnkPrivacy" style="color:#f5c542">سياسة الخصوصية</a> — ممنوع الإساءة والمضايقة والمحتوى الجنسي والتهديد في الشات والأسماء.</span>
+    </label>
     <button id="btnSaveProfile" style="width:100%">حفظ وابدأ</button>
     <div id="profileErr"></div>
   </div>
@@ -237,6 +241,10 @@ table.score th,table.score td{border-bottom:1px solid var(--line);padding:6px 4p
     <div class="small" id="friendsEmpty">لسه معندكش صحاب — وانت بتلعب دوس على بروفايل أي لاعب واعمله إضافة</div>
   </div>
   <div class="card-panel">
+    <div class="row" style="margin-bottom:8px">
+      <button class="ghost" id="btnShowTerms" style="flex:1">📜 شروط الاستخدام</button>
+      <button class="ghost" id="btnShowPrivacy" style="flex:1">🔒 سياسة الخصوصية</button>
+    </div>
     <button class="ghost" id="btnDeleteAccount" style="width:100%;color:#ff8a8a">🗑 حذف حسابي وبياناتي</button>
     <div class="small" style="margin-top:6px">الحذف نهائي: الاسم والمستوى والكوينز والصحاب هيتمسحوا ومش هيرجعوا.</div>
   </div>
@@ -349,6 +357,13 @@ table.score th,table.score td{border-bottom:1px solid var(--line);padding:6px 4p
   <button class="ghost" id="btnClosePlayer" style="width:100%;margin-top:8px">اقفل</button>
 </div></div>
 
+<!-- ======= TEXT MODAL (terms / privacy) ======= -->
+<div id="textModal" class="modal-bg hidden"><div class="modal">
+  <h3 id="tmTitle" style="margin-top:0"></h3>
+  <div id="tmBody" class="small" style="text-align:start;white-space:pre-wrap;max-height:55vh;overflow:auto;line-height:1.9"></div>
+  <button id="btnCloseText" style="width:100%;margin-top:12px">اقفل</button>
+</div></div>
+
 <div id="toast" class="toast hidden"></div>
 
 <script>
@@ -421,8 +436,9 @@ function buildAvatarPick(){
 async function saveProfile(){
   const name = $('inName').value.trim();
   if(!name){ $('profileErr').innerHTML = '<div class="err">اكتب اسمك الأول</div>'; return; }
+  if(!$('inTerms').checked){ $('profileErr').innerHTML = '<div class="err">لازم توافق على شروط الاستخدام الأول ✓</div>'; return; }
   try{
-    const j = await api('/api/profile', {token, name, avatar: pickedAvatar});
+    const j = await api('/api/profile', {token, name, avatar: pickedAvatar, terms: true});
     token = j.token; profile = j.profile;
     localStorage.setItem('heart_token', token);
     localStorage.setItem('heart_avatar', pickedAvatar);
@@ -792,6 +808,8 @@ function renderChat(scroll){
     const d = document.createElement('div');
     d.className = 'chat-msg' + (st.me && m.seat === st.me.seat ? ' mine' : '');
     d.innerHTML = '<div class="cav">'+m.avatar+'</div><div class="cbody"><div class="cname">'+escapeHtml(m.name)+'</div><div class="ctext">'+escapeHtml(m.text)+'</div></div>';
+    const mySeat = st.me ? st.me.seat : ((st.seats.find(s=>s.isMe) || {}).seat);
+    if(m.seat !== mySeat && m.mid){ d.style.cursor = 'pointer'; d.title = 'دوس للإبلاغ عن الرسالة'; d.onclick = ()=> reportMsg(m); }
     box.appendChild(d);
   }
   if(scroll) box.scrollTop = box.scrollHeight;
@@ -859,6 +877,41 @@ async function deleteAccount(){
     location.reload();
   }catch(e){ toast(e.message); }
 }
+const TERMS_TEXT = `شروط استخدام هارت أونلاين ♥
+بإنشاء بروفايل أو استخدام الشات، انت موافق على الشروط دي. الشات والأسماء والصور الرمزية محتوى من صنع اللاعبين.
+
+ممنوع منعًا باتًا:
+• الإساءة أو الشتائم أو المضايقة أو التنمر على أي لاعب
+• خطاب الكراهية أو التمييز ضد أي شخص أو مجموعة
+• أي محتوى جنسي أو إباحي — خصوصًا تجاه القاصرين (حظر فوري ونهائي)
+• التهديد بالعنف أو التحريض عليه أو محتوى عنيف/صادم
+• السبام والرسائل المتكررة والإعلانات
+• انتحال شخصية لاعب تاني أو أي شخص حقيقي
+• نشر بيانات شخصية (تليفونات، عناوين، حسابات) بتاعتك أو بتاعة غيرك
+• الغش أو استغلال أخطاء اللعبة أو برامج خارجية للتلاعب
+
+الإشراف: تقدر تحظر أي لاعب من بروفايله (مش هتشوف رسايله) وتبلّغ عن أي لاعب أو رسالة (دوس على الرسالة). بنراجع البلاغات، والمخالفة ممكن تؤدي لحذف المحتوى أو مسح بيانات المخالف ومنعه من اللعب نهائيًا.
+
+اللعبة للمتعة فقط: مفيش رهان ولا فلوس حقيقية، والكوينز افتراضية بلا أي قيمة نقدية. السن: 13 سنة فأكثر.
+الشروط الكاملة: heart-online.onrender.com/terms`;
+const PRIVACY_TEXT = `سياسة خصوصية هارت أونلاين ♥ (ملخص)
+بنجمع بس: الاسم اللي بتختاره وصورتك الرمزية، وتقدمك في اللعبة (XP ومستوى وكوينز) وقائمة صحابك — عشان اللعبة تشتغل وتتقدمك يتحفظ.
+رسائل الشات بتظهر للاعبين اللي معاك في نفس الغرفة بس وبتختفي بانتهاء الغرفة.
+مش بنجمع اسمك الحقيقي ولا تليفونك ولا موقعك ولا بيانات دفع، ومش بنبيع بياناتك ولا بنشاركها مع حد لأغراض إعلانية، ومفيش إعلانات أو أدوات تتبع في اللعبة.
+تقدر تمسح حسابك وكل بياناتك نهائيًا في أي وقت من زر «حذف حسابي وبياناتي» في الشاشة الرئيسية، أو بإيميل على noura7med321@gmail.com
+السياسة الكاملة: heart-online.onrender.com/privacy`;
+function showText(kind){
+  $('tmTitle').textContent = kind === 'terms' ? '📜 شروط الاستخدام' : '🔒 سياسة الخصوصية';
+  $('tmBody').textContent = kind === 'terms' ? TERMS_TEXT : PRIVACY_TEXT;
+  $('textModal').classList.remove('hidden');
+}
+async function reportMsg(m){
+  if(!confirm('تبلّغ عن رسالة «' + m.name + '»؟')) return;
+  try{
+    await api('/api/report-msg', {token, code: roomCode, mid: m.mid});
+    toast('وصلنا بلاغك — هنراجعه ✓');
+  }catch(e){ toast(e.message); }
+}
 function renderFriends(){
   const list = $('friendsList'); if(!list || !profile) return;
   list.innerHTML = '';
@@ -873,7 +926,7 @@ function renderFriends(){
 
 /* ---------- wire up ---------- */
 $('btnSaveProfile').onclick = saveProfile;
-$('btnEditProfile').onclick = ()=>{ $('inName').value = profile.name; pickedAvatar = profile.avatar; buildAvatarPick(); show('viewProfile'); };
+$('btnEditProfile').onclick = ()=>{ $('inName').value = profile.name; pickedAvatar = profile.avatar; $('inTerms').checked = true; buildAvatarPick(); show('viewProfile'); };
 $('btnCreate').onclick = createRoom;
 $('btnJoin').onclick = joinRoom;
 $('btnStart').onclick = async ()=>{ try{ await api('/api/start-match', {token, code: roomCode}); pollOnce(); }catch(e){ $('lobbyErr').innerHTML = '<div class="err">'+e.message+'</div>'; } };
@@ -898,6 +951,11 @@ $('btnAddFriend').onclick = addFriend;
 $('btnBlockPlayer').onclick = blockPlayer;
 $('btnReportPlayer').onclick = reportPlayer;
 $('btnDeleteAccount').onclick = deleteAccount;
+$('btnShowTerms').onclick = ()=> showText('terms');
+$('btnShowPrivacy').onclick = ()=> showText('privacy');
+$('btnCloseText').onclick = ()=> $('textModal').classList.add('hidden');
+$('lnkTerms').onclick = e=>{ e.preventDefault(); showText('terms'); };
+$('lnkPrivacy').onclick = e=>{ e.preventDefault(); showText('privacy'); };
 $('btnClosePlayer').onclick = ()=>$('playerModal').classList.add('hidden');
 $('snapBtn').onclick = ()=>{
   if(!st || !st.me || st.me.snapUsed) return;
