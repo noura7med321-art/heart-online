@@ -329,10 +329,13 @@ function stateFor(room, token) {
       cardCount: m ? m.hands[i].length : 0, takenPts: m ? m.taken[i] : 0,
       snapped: m ? !!m.snapUsed[i] : false, passed: m ? !!m.passCards[i] : false,
       level: (s.token && !s.bot && players[s.token]) ? levelOf(players[s.token].xp || 0) : null,
-      friend: !!(s.token && ((getPlayer(token) || {}).friends || {})[s.token])
+      friend: !!(s.token && ((getPlayer(token) || {}).friends || {})[s.token]),
+      blocked: !!(s.token && (((getPlayer(token) || {}).blocked || []).includes(s.token)))
     })),
     emojis: room.emojis || {},
-    chat: (room.chat || []).slice(-40),
+    chat: (room.chat || []).slice(-40)
+      .filter(msg => !(((getPlayer(token) || {}).blocked || []).includes(msg.from)))
+      .map(msg => ({ seat: msg.seat, name: msg.name, avatar: msg.avatar, text: msg.text, at: msg.at })),
     me: null, play: null, scores: null, matchInfo: null
   };
   if (mySeat >= 0 && m) {
@@ -402,6 +405,17 @@ const server = http.createServer(async (req, res) => {
       savePlayers();
       return send(res, 200, { ok: true, token: t, profile: { name: pl.name, avatar: pl.avatar, xp: pl.xp, coins: pl.coins, level: levelOf(pl.xp), friends: friendsOf(pl) } });
     }
+    if (p === '/api/delete-account') {
+      if (!token || !players[token]) return send(res, 401, { error: 'اعمل بروفايل الأول' });
+      delete players[token];
+      for (const k of Object.keys(players)) {
+        const f = players[k].friends;
+        if (f && f[token]) delete f[token];
+        if (Array.isArray(players[k].blocked)) players[k].blocked = players[k].blocked.filter(t => t !== token);
+      }
+      savePlayers();
+      return send(res, 200, { ok: true });
+    }
     const pl = getPlayer(token);
     if (!pl) return send(res, 401, { error: 'اعمل بروفايل الأول' });
     if (!pl.name) return send(res, 400, { error: 'اكتب اسمك الأول' });
@@ -454,7 +468,7 @@ const server = http.createServer(async (req, res) => {
       const text = (b.text || '').toString().trim().slice(0, 300);
       if (!text) return send(res, 400, { error: 'اكتب رسالة الأول' });
       room.chat = room.chat || [];
-      room.chat.push({ seat: si, name: room.seats[si].name, avatar: room.seats[si].avatar, text, at: Date.now() });
+      room.chat.push({ seat: si, from: token, name: room.seats[si].name, avatar: room.seats[si].avatar, text, at: Date.now() });
       if (room.chat.length > 80) room.chat = room.chat.slice(-80);
       bump(room);
       return send(res, 200, { ok: true });
@@ -467,6 +481,28 @@ const server = http.createServer(async (req, res) => {
       pl.friends[target.token] = true;
       savePlayers();
       return send(res, 200, { ok: true, friends: friendsOf(pl) });
+    }
+    if (p === '/api/block') {
+      const target = room.seats[+b.seat];
+      if (!target || !target.token || target.bot) return send(res, 400, { error: 'مينفعش تحظر البوت' });
+      if (target.token === token) return send(res, 400, { error: 'ده بروفايلك انت' });
+      pl.blocked = Array.isArray(pl.blocked) ? pl.blocked : [];
+      const i = pl.blocked.indexOf(target.token);
+      let nowBlocked;
+      if (i >= 0) { pl.blocked.splice(i, 1); nowBlocked = false; } else { pl.blocked.push(target.token); nowBlocked = true; }
+      savePlayers();
+      bump(room);
+      return send(res, 200, { ok: true, blocked: nowBlocked });
+    }
+    if (p === '/api/report') {
+      const target = room.seats[+b.seat];
+      if (!target || !target.token || target.bot) return send(res, 400, { error: 'مينفعش تبلّغ عن البوت' });
+      if (target.token === token) return send(res, 400, { error: 'ده بروفايلك انت' });
+      try {
+        const line = JSON.stringify({ at: new Date().toISOString(), room: code, by: token, byName: pl.name, about: target.token, aboutName: target.name }) + '\n';
+        fs.appendFileSync(path.join(ROOT, 'reports.log'), line);
+      } catch (e) { /* reporting must never break the game */ }
+      return send(res, 200, { ok: true });
     }
     if (p === '/api/start-match') {
       if (room.hostToken !== token) return send(res, 403, { error: 'صاحب الغرفة بس يقدر يبدأ' });
