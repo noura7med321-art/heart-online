@@ -335,7 +335,7 @@ function stateFor(room, token) {
     emojis: room.emojis || {},
     chat: (room.chat || []).slice(-40)
       .filter(msg => !(((getPlayer(token) || {}).blocked || []).includes(msg.from)))
-      .map(msg => ({ seat: msg.seat, name: msg.name, avatar: msg.avatar, text: msg.text, at: msg.at })),
+      .map(msg => ({ mid: msg.mid || 0, seat: msg.seat, name: msg.name, avatar: msg.avatar, text: msg.text, at: msg.at })),
     me: null, play: null, scores: null, matchInfo: null
   };
   if (mySeat >= 0 && m) {
@@ -372,9 +372,10 @@ const server = http.createServer(async (req, res) => {
       res.writeHead(200, Object.assign({ 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store' }, CORS)); res.end(html); return;
     }
     if (p === '/favicon.ico') { res.writeHead(204); res.end(); return; }
-    if (req.method === 'GET' && p === '/privacy') {
+    if (req.method === 'GET' && (p === '/privacy' || p === '/terms' || p === '/delete-account')) {
+      const file = p === '/privacy' ? 'privacy.html' : (p === '/terms' ? 'terms.html' : 'delete-account.html');
       try {
-        const html = fs.readFileSync(path.join(ROOT, 'public', 'privacy.html'));
+        const html = fs.readFileSync(path.join(ROOT, 'public', file));
         res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' }); res.end(html);
       } catch (e) { res.writeHead(404); res.end('not found'); }
       return;
@@ -401,6 +402,7 @@ const server = http.createServer(async (req, res) => {
       const pl = players[t];
       if (typeof b.name === 'string' && b.name.trim()) pl.name = b.name.trim().slice(0, 24);
       if (typeof b.avatar === 'string' && b.avatar) pl.avatar = b.avatar.slice(0, 8);
+      if (b.terms) pl.termsAt = Date.now();
       pl.lastSeen = Date.now();
       savePlayers();
       return send(res, 200, { ok: true, token: t, profile: { name: pl.name, avatar: pl.avatar, xp: pl.xp, coins: pl.coins, level: levelOf(pl.xp), friends: friendsOf(pl) } });
@@ -468,7 +470,8 @@ const server = http.createServer(async (req, res) => {
       const text = (b.text || '').toString().trim().slice(0, 300);
       if (!text) return send(res, 400, { error: 'اكتب رسالة الأول' });
       room.chat = room.chat || [];
-      room.chat.push({ seat: si, from: token, name: room.seats[si].name, avatar: room.seats[si].avatar, text, at: Date.now() });
+      room.chatSeq = (room.chatSeq || 0) + 1;
+      room.chat.push({ mid: room.chatSeq, seat: si, from: token, name: room.seats[si].name, avatar: room.seats[si].avatar, text, at: Date.now() });
       if (room.chat.length > 80) room.chat = room.chat.slice(-80);
       bump(room);
       return send(res, 200, { ok: true });
@@ -500,6 +503,16 @@ const server = http.createServer(async (req, res) => {
       if (target.token === token) return send(res, 400, { error: 'ده بروفايلك انت' });
       try {
         const line = JSON.stringify({ at: new Date().toISOString(), room: code, by: token, byName: pl.name, about: target.token, aboutName: target.name }) + '\n';
+        fs.appendFileSync(path.join(ROOT, 'reports.log'), line);
+      } catch (e) { /* reporting must never break the game */ }
+      return send(res, 200, { ok: true });
+    }
+    if (p === '/api/report-msg') {
+      const msg = (room.chat || []).find(x => x.mid === +b.mid);
+      if (!msg) return send(res, 400, { error: 'الرسالة مش موجودة' });
+      if (msg.from === token) return send(res, 400, { error: 'دي رسالتك انت' });
+      try {
+        const line = JSON.stringify({ at: new Date().toISOString(), type: 'message', room: code, by: token, byName: pl.name, about: msg.from, aboutName: msg.name, text: msg.text }) + '\n';
         fs.appendFileSync(path.join(ROOT, 'reports.log'), line);
       } catch (e) { /* reporting must never break the game */ }
       return send(res, 200, { ok: true });
