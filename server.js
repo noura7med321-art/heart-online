@@ -369,6 +369,13 @@ const server = http.createServer(async (req, res) => {
       res.writeHead(200, Object.assign({ 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store' }, CORS)); res.end(html); return;
     }
     if (p === '/favicon.ico') { res.writeHead(204); res.end(); return; }
+    if (req.method === 'GET' && p === '/privacy') {
+      try {
+        const html = fs.readFileSync(path.join(ROOT, 'public', 'privacy.html'));
+        res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' }); res.end(html);
+      } catch (e) { res.writeHead(404); res.end('not found'); }
+      return;
+    }
     if (req.method === 'GET' && p === '/api/state') {
       const token = url.searchParams.get('token') || ''; const code = (url.searchParams.get('code') || '').toUpperCase();
       const room = rooms.get(code); const pl = getPlayer(token);
