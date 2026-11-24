@@ -348,6 +348,7 @@ table.score th,table.score td{border-bottom:1px solid var(--line);padding:6px 4p
 <script>
 'use strict';
 const $ = id => document.getElementById(id);
+const API_BASE = window.HEART_API_BASE || '';
 const AVATARS = ['🦊','🐼','🦁','🐯','🐸','🦉','🦄','🐙','👨','👩','🧑','👤'];
 const LEVEL_NAMES = ['مبتدئ','هاوٍ','متقدم','محترف','خبير','أسطورة'];
 const LEVEL_XP = [0,100,250,450,700,1000];
@@ -390,7 +391,7 @@ function toast(msg, ms){
   clearTimeout(t._h); t._h = setTimeout(()=>t.classList.add('hidden'), ms||2200);
 }
 async function api(path, body){
-  const r = await fetch(path, {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body||{})});
+  const r = await fetch(API_BASE + path, {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body||{})});
   const j = await r.json().catch(()=>({}));
   if(!r.ok) throw new Error(j.error || 'حصلت مشكلة');
   return j;
@@ -478,7 +479,7 @@ function stopPolling(){ if(pollInt){ clearInterval(pollInt); pollInt=null; } }
 async function pollOnce(){
   if(!roomCode || !token) return;
   try{
-    const r = await fetch('/api/state?token='+encodeURIComponent(token)+'&code='+encodeURIComponent(roomCode));
+    const r = await fetch(API_BASE + '/api/state?token='+encodeURIComponent(token)+'&code='+encodeURIComponent(roomCode));
     const j = await r.json().catch(()=>({}));
     if(!r.ok){ if(r.status===404||r.status===403){ stopPolling(); toast('الغرفة اتقفلت'); roomCode=''; enterHome(); } return; }
     const phaseChanged = !st || st.phase !== j.phase;
@@ -845,7 +846,7 @@ $('btnJoin').onclick = joinRoom;
 $('btnStart').onclick = async ()=>{ try{ await api('/api/start-match', {token, code: roomCode}); pollOnce(); }catch(e){ $('lobbyErr').innerHTML = '<div class="err">'+e.message+'</div>'; } };
 $('btnLeaveLobby').onclick = leaveRoom;
 $('btnCopyCode').onclick = ()=>copyText(roomCode, 'اتنسخ الكود ✓');
-$('btnCopyLink').onclick = ()=>copyText(location.origin+'/?room='+roomCode, 'اتنسخ لينك الدعوة ✓');
+$('btnCopyLink').onclick = ()=>copyText((API_BASE || location.origin)+'/?room='+roomCode, 'اتنسخ لينك الدعوة ✓');
 $('btnScore').onclick = openScore;
 $('btnCloseScore').onclick = ()=>$('scoreModal').classList.add('hidden');
 $('btnMenu').onclick = ()=>{ $('inSort').value = sortMode; $('menuModal').classList.remove('hidden'); };
