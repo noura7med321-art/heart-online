@@ -355,16 +355,18 @@ function stateFor(room, token) {
 }
 
 /* ---------------- HTTP ---------------- */
-function send(res, code, obj) { const body = JSON.stringify(obj); res.writeHead(code, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' }); res.end(body); }
+const CORS = { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Methods': 'GET, POST, OPTIONS', 'Access-Control-Allow-Headers': 'Content-Type' };
+function send(res, code, obj) { const body = JSON.stringify(obj); res.writeHead(code, Object.assign({ 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' }, CORS)); res.end(body); }
 function readBody(req) { return new Promise((resolve, reject) => { let d = ''; req.on('data', c => { d += c; if (d.length > 100000) req.destroy(); }); req.on('end', () => { try { resolve(d ? JSON.parse(d) : {}); } catch (e) { resolve({}); } }); req.on('error', reject); }); }
 
 const server = http.createServer(async (req, res) => {
   const url = new URL(req.url, 'http://x');
   const p = url.pathname;
   try {
+    if (req.method === 'OPTIONS') { res.writeHead(204, CORS); res.end(); return; }
     if (req.method === 'GET' && (p === '/' || p === '/index.html')) {
       const html = fs.readFileSync(INDEX_FILE);
-      res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store' }); res.end(html); return;
+      res.writeHead(200, Object.assign({ 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store' }, CORS)); res.end(html); return;
     }
     if (p === '/favicon.ico') { res.writeHead(204); res.end(); return; }
     if (req.method === 'GET' && p === '/api/state') {
