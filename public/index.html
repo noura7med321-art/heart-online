@@ -236,6 +236,10 @@ table.score th,table.score td{border-bottom:1px solid var(--line);padding:6px 4p
     <div class="seatlist" id="friendsList"></div>
     <div class="small" id="friendsEmpty">لسه معندكش صحاب — وانت بتلعب دوس على بروفايل أي لاعب واعمله إضافة</div>
   </div>
+  <div class="card-panel">
+    <button class="ghost" id="btnDeleteAccount" style="width:100%;color:#ff8a8a">🗑 حذف حسابي وبياناتي</button>
+    <div class="small" style="margin-top:6px">الحذف نهائي: الاسم والمستوى والكوينز والصحاب هيتمسحوا ومش هيرجعوا.</div>
+  </div>
 </div>
 
 <!-- ======= LOBBY ======= -->
@@ -340,6 +344,8 @@ table.score th,table.score td{border-bottom:1px solid var(--line);padding:6px 4p
   <h3 id="ppName" style="margin:6px 0 2px"></h3>
   <div class="small" id="ppSub"></div>
   <button id="btnAddFriend" style="width:100%;margin-top:14px">➕ إضافة صديق</button>
+  <button class="ghost" id="btnBlockPlayer" style="width:100%;margin-top:8px">🚫 حظر اللاعب</button>
+  <button class="ghost" id="btnReportPlayer" style="width:100%;margin-top:8px">⚠️ إبلاغ عن اللاعب</button>
   <button class="ghost" id="btnClosePlayer" style="width:100%;margin-top:8px">اقفل</button>
 </div></div>
 
@@ -807,11 +813,13 @@ function openPlayer(s){
     (s.bot ? 'بوت — مبيتعملوش إضافة' :
     ('⭐ المستوى ' + (s.level || 1) + (s.friend ? ' · صاحبك من قبل' : '')));
   const btn = $('btnAddFriend');
-  if(s.isMe || s.bot){ btn.classList.add('hidden'); }
+  const btnB = $('btnBlockPlayer'), btnR = $('btnReportPlayer');
+  if(s.isMe || s.bot){ btn.classList.add('hidden'); btnB.classList.add('hidden'); btnR.classList.add('hidden'); }
   else{
-    btn.classList.remove('hidden');
+    btn.classList.remove('hidden'); btnB.classList.remove('hidden'); btnR.classList.remove('hidden');
     if(s.friend){ btn.textContent = '✓ صاحبك'; btn.disabled = true; }
     else{ btn.textContent = '➕ إضافة صديق'; btn.disabled = false; }
+    btnB.textContent = s.blocked ? '↩️ إلغاء الحظر' : '🚫 حظر اللاعب';
   }
   $('playerModal').classList.remove('hidden');
 }
@@ -824,6 +832,31 @@ async function addFriend(){
     toast('بقى صاحبك ✓');
     renderFriends();
     pollOnce();
+  }catch(e){ toast(e.message); }
+}
+async function blockPlayer(){
+  if(ppSeat === null) return;
+  try{
+    const j = await api('/api/block', {token, code: roomCode, seat: ppSeat});
+    $('playerModal').classList.add('hidden');
+    toast(j.blocked ? 'اتحظر — مش هتشوف رسايله' : 'اتلغى الحظر');
+    pollOnce();
+  }catch(e){ toast(e.message); }
+}
+async function reportPlayer(){
+  if(ppSeat === null) return;
+  try{
+    await api('/api/report', {token, code: roomCode, seat: ppSeat});
+    $('playerModal').classList.add('hidden');
+    toast('وصلنا بلاغك — هنراجعه ✓');
+  }catch(e){ toast(e.message); }
+}
+async function deleteAccount(){
+  if(!confirm('متأكد؟ حسابك وبياناتك هيتمسحوا نهائيًا ومش هيرجعوا.')) return;
+  try{
+    await api('/api/delete-account', {token});
+    localStorage.removeItem('heart_token');
+    location.reload();
   }catch(e){ toast(e.message); }
 }
 function renderFriends(){
@@ -862,6 +895,9 @@ $('btnCloseChat').onclick = closeChat;
 $('btnSendChat').onclick = sendChat;
 $('chatText').addEventListener('keydown', e=>{ if(e.key === 'Enter') sendChat(); });
 $('btnAddFriend').onclick = addFriend;
+$('btnBlockPlayer').onclick = blockPlayer;
+$('btnReportPlayer').onclick = reportPlayer;
+$('btnDeleteAccount').onclick = deleteAccount;
 $('btnClosePlayer').onclick = ()=>$('playerModal').classList.add('hidden');
 $('snapBtn').onclick = ()=>{
   if(!st || !st.me || st.me.snapUsed) return;
