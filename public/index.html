@@ -4,12 +4,21 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <title>هارت أونلاين ♥</title>
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="theme-color" content="#0a1f14">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="icon" href="/icon-512.png">
+<link rel="apple-touch-icon" href="/icon-512.png">
 <style>
 :root{
   --felt:#0e6b3a; --felt2:#084d28; --ink:#14201a; --gold:#f5c542; --gold2:#d99a16;
   --panel:#12241b; --panel2:#1a3325; --line:rgba(255,255,255,.14);
   --green:#2ecc71; --red:#e74c3c; --txt:#f2f5f3; --muted:#9fb8ab;
-  --cardw:64px; --cardh:90px; --trickw:86px; --trickh:120px;
+  --cardh:clamp(58px,19dvh,90px); --cardw:calc(var(--cardh)*.72);
+  --trickh:clamp(52px,16dvh,120px); --trickw:calc(var(--trickh)*.72);
+  --avsize:clamp(40px,11.5dvh,52px); --overlap:calc(var(--cardw)*-.40);
 }
 *{box-sizing:border-box; -webkit-tap-highlight-color:transparent}
 html,body{margin:0;padding:0}
@@ -60,22 +69,24 @@ label.f input[type=checkbox]{width:20px;height:20px;flex:0 0 auto}
 #myScoreChip{font-weight:900;font-size:15px;border-radius:999px;padding:5px 12px;background:rgba(255,255,255,.09);border:1px solid var(--line);min-width:40px;text-align:center}
 #myScoreChip.ahead{background:rgba(46,204,113,.22);border-color:var(--green);color:#7dffa9;box-shadow:0 0 12px rgba(46,204,113,.75)}
 #myScoreChip.behind{background:rgba(231,76,60,.22);border-color:var(--red);color:#ff9d92;box-shadow:0 0 12px rgba(231,76,60,.75)}
-.table{position:relative;border-radius:26px;background:radial-gradient(ellipse at 50% 38%,#128a48 0%,var(--felt) 55%,var(--felt2) 100%);box-shadow:inset 0 0 60px rgba(0,0,0,.5),0 14px 34px rgba(0,0,0,.45);height:calc(100dvh - 74px);min-height:520px;overflow:hidden;border:3px solid #5d3d17}
+.table{position:relative;border-radius:26px;background:radial-gradient(ellipse at 50% 40%,#166b3d 0%,#105c33 42%,#0a4726 72%,#06331a 100%);box-shadow:inset 0 0 90px rgba(0,0,0,.6),inset 0 0 0 2px rgba(255,215,130,.08),0 0 0 2px #241605,0 14px 34px rgba(0,0,0,.45);height:calc(100dvh - 74px);min-height:520px;overflow:hidden;border:4px solid #4a3013}
+.table::before{content:'';position:absolute;inset:0;z-index:1;pointer-events:none;opacity:.07;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E")}
 /* seats */
 .seat{position:absolute;display:flex;flex-direction:column;align-items:center;gap:2px;width:86px;z-index:5;text-align:center}
 .seat.corner{top:10px;left:10px}
 .seat.top{top:10px;left:50%;transform:translateX(-50%)}
 .seat.left{left:6px;top:48%;transform:translateY(-50%)}
 .seat.right{right:6px;top:48%;transform:translateY(-50%)}
-.avwrap{position:relative;width:52px;height:52px}
-.avring{position:absolute;inset:-4px;border-radius:50%;background:conic-gradient(var(--gold) 0deg, rgba(255,255,255,.12) 0deg)}
-.avring .inner{position:absolute;inset:3px;border-radius:50%;background:#0c3520;display:flex;align-items:center;justify-content:center;font-size:27px;overflow:hidden}
-.seat.turn .avring{box-shadow:0 0 16px 3px rgba(245,197,66,.85)}
+.avwrap{position:relative;width:var(--avsize);height:var(--avsize)}
+.avring{position:absolute;inset:-4px;border-radius:50%;background:conic-gradient(var(--gold) 0deg, rgba(255,255,255,.18) 0deg);box-shadow:0 3px 8px rgba(0,0,0,.45)}
+.avring .inner{position:absolute;inset:3px;border-radius:50%;background:#0c3520;display:flex;align-items:center;justify-content:center;font-size:calc(var(--avsize)*.52);overflow:hidden}
+.seat.turn .avring{box-shadow:0 0 12px 2px rgba(245,197,66,.6);animation:turnPulse 1.6s ease-in-out infinite}
+@keyframes turnPulse{0%,100%{box-shadow:0 0 10px 1px rgba(245,197,66,.5)}50%{box-shadow:0 0 16px 3px rgba(245,197,66,.75)}}
 .pts-badge{position:absolute;top:-7px;left:-7px;z-index:3;background:#fff;color:#14201a;border:2px solid var(--gold2);min-width:23px;height:23px;border-radius:999px;font-size:13px;font-weight:900;display:flex;align-items:center;justify-content:center;padding:0 4px;box-shadow:0 2px 6px rgba(0,0,0,.4)}
-.seat .sname{font-size:12.5px;font-weight:800;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.7);max-width:86px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.seat .sname{font-size:12.5px;font-weight:800;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.7);max-width:96px;line-height:1.25;word-break:break-word}
 .you-tag{background:linear-gradient(180deg,var(--gold),var(--gold2));color:#231a02;font-size:11px;font-weight:900;border-radius:999px;padding:1px 9px;box-shadow:0 2px 6px rgba(0,0,0,.4)}
 .bot-tag{font-size:11px;color:#cfe6d8}
-.seat .bubble{position:absolute;top:57px;left:50%;transform:translateX(-50%);background:#fff;color:#14201a;font-size:25px;line-height:1.3;padding:3px 9px 5px;border-radius:16px;z-index:9;box-shadow:0 4px 12px rgba(0,0,0,.45);white-space:nowrap;animation:bubblePop .18s ease}
+.seat .bubble{position:absolute;top:calc(var(--avsize) + 5px);left:50%;transform:translateX(-50%);background:#fff;color:#14201a;font-size:25px;line-height:1.3;padding:3px 9px 5px;border-radius:16px;z-index:9;box-shadow:0 4px 12px rgba(0,0,0,.45);white-space:nowrap;max-width:130px;animation:bubblePop .18s ease}
 @keyframes bubblePop{from{transform:translateX(-50%) scale(.5);opacity:0}to{transform:translateX(-50%) scale(1);opacity:1}}
 .seat{cursor:pointer}
 /* chat */
@@ -87,12 +98,13 @@ label.f input[type=checkbox]{width:20px;height:20px;flex:0 0 auto}
 .chat-msgs{flex:1;overflow-y:auto;padding:10px;display:flex;flex-direction:column;gap:8px}
 .chat-msg{display:flex;gap:7px;align-items:flex-start}
 .chat-msg .cav{font-size:20px;background:rgba(255,255,255,.08);border-radius:50%;width:34px;height:34px;display:flex;align-items:center;justify-content:center;flex:0 0 auto}
-.chat-msg .cbody{background:rgba(255,255,255,.07);border:1px solid var(--line);border-radius:12px;padding:6px 10px;max-width:82%}
+.chat-msg .cbody{background:rgba(255,255,255,.10);border:1px solid var(--line);border-radius:12px;padding:7px 11px;max-width:82%}
 .chat-msg.mine .cbody{background:rgba(245,197,66,.16);border-color:rgba(245,197,66,.4)}
-.chat-msg .cname{font-size:11.5px;color:var(--gold);font-weight:800;margin-bottom:1px}
+.chat-msg .cname{font-size:12px;color:var(--gold);font-weight:800;margin-bottom:1px}
 .chat-msg .ctext{font-size:14.5px;word-break:break-word;white-space:pre-wrap}
 .chat-input{display:flex;gap:6px;padding:10px;border-top:1px solid var(--line)}
-.chat-input input{flex:1;min-width:0}
+.chat-input input{flex:1;min-width:0;min-height:44px}
+.chat-input button{min-height:44px;padding:10px 18px}
 .qhint{font-size:10.5px;background:#000;color:var(--gold);border:1px solid var(--gold2);border-radius:6px;padding:0 5px;font-weight:900}
 /* trick zone — centred, enlarged played cards, clear of all seats */
 .trick{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:min(336px,calc(100% - 148px));height:44%;min-height:236px;z-index:2;background:rgba(0,0,0,.14);border:1.5px solid rgba(255,255,255,.16);border-radius:28px;box-shadow:inset 0 0 30px rgba(0,0,0,.35)}
@@ -102,21 +114,35 @@ label.f input[type=checkbox]{width:20px;height:20px;flex:0 0 auto}
 .trick .slot.right{right:8px;top:50%;transform:translateY(-50%)}
 .trick .slot.left{left:8px;top:50%;transform:translateY(-50%)}
 /* cards */
-.card{width:var(--cardw);height:var(--cardh);border-radius:8px;background:#fff;color:var(--ink);border:1px solid #cfcfcf;box-shadow:0 4px 10px rgba(0,0,0,.38);position:relative;flex:0 0 auto;user-select:none;-webkit-user-select:none;overflow:hidden;font-weight:900}
-.card .idx{position:absolute;top:3px;left:5px;font-size:19px;line-height:1;text-align:center}
-.card .idx .su{display:block;font-size:16px;margin-top:1px}
-.card .big{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:44px}
-.card .idx2{position:absolute;bottom:3px;right:5px;font-size:13px;transform:rotate(180deg);line-height:1;text-align:center}
+.card{width:var(--cardw);height:var(--cardh);border-radius:9px;background:linear-gradient(180deg,#ffffff 0%,#f3f3f0 100%);color:var(--ink);border:1px solid #c6c6c6;box-shadow:0 4px 10px rgba(0,0,0,.38),inset 0 0 0 1px rgba(255,255,255,.7),inset 0 -6px 10px rgba(0,0,0,.05);position:relative;flex:0 0 auto;user-select:none;-webkit-user-select:none;overflow:hidden;font-weight:900;-webkit-font-smoothing:antialiased}
+.card .idx{position:absolute;top:3px;left:5px;font-size:calc(var(--cardh)*.21);line-height:1;text-align:center}
+.card .idx .su{display:block;font-size:calc(var(--cardh)*.18);margin-top:1px}
+.card .big{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:calc(var(--cardh)*.5)}
+.card .idx2{position:absolute;bottom:3px;right:5px;font-size:calc(var(--cardh)*.15);transform:rotate(180deg);line-height:1;text-align:center}
+.card .idx .su,.card .big,.card .idx2{font-family:"Segoe UI Symbol","Noto Sans Symbols 2","DejaVu Sans",sans-serif}
 .card.red{color:#d21f3c}
+.card.back{background:repeating-linear-gradient(45deg,rgba(245,197,66,.16) 0 2px,transparent 2px 10px),repeating-linear-gradient(-45deg,rgba(245,197,66,.16) 0 2px,transparent 2px 10px),linear-gradient(160deg,#0d5c33,#073d20);border:2px solid #e9e4d8;box-shadow:0 4px 10px rgba(0,0,0,.38),inset 0 0 0 3px rgba(233,228,216,.9),inset 0 0 0 5px rgba(245,197,66,.35)}
+.card.queen{box-shadow:0 0 0 2.5px var(--gold),0 4px 10px rgba(0,0,0,.38),inset 0 0 0 1px rgba(255,255,255,.7),inset 0 -6px 10px rgba(0,0,0,.05)}
 .card.trickcard{width:var(--trickw);height:var(--trickh)}
-.card.trickcard .idx{font-size:24px}.card.trickcard .idx .su{font-size:20px}.card.trickcard .big{font-size:58px}.card.trickcard .idx2{font-size:15px}
+.card.trickcard .idx{font-size:calc(var(--trickh)*.2)}.card.trickcard .idx .su{font-size:calc(var(--trickh)*.17)}.card.trickcard .big{font-size:calc(var(--trickh)*.48)}.card.trickcard .idx2{font-size:calc(var(--trickh)*.13)}
 .card.mini{width:27px;height:38px;border-radius:5px}
 .card.mini .idx{font-size:10.5px;top:2px;left:3px}.card.mini .idx .su{font-size:9px}.card.mini .big{display:none}.card.mini .idx2{display:none}
 .card.winner{box-shadow:0 0 0 3px var(--gold),0 0 16px 3px rgba(245,197,66,.8)}
+/* card motion: fly-in from the player's side, collect toward the winner */
+@keyframes flyMe{from{transform:translateY(44px) scale(.9);opacity:.4}to{transform:translateY(0) scale(1);opacity:1}}
+@keyframes flyPartner{from{transform:translateY(-44px) scale(.9);opacity:.4}to{transform:translateY(0) scale(1);opacity:1}}
+@keyframes flyLeft{from{transform:translateX(-56px) scale(.9);opacity:.4}to{transform:translateX(0) scale(1);opacity:1}}
+@keyframes flyRight{from{transform:translateX(56px) scale(.9);opacity:.4}to{transform:translateX(0) scale(1);opacity:1}}
+.card.fly-me{animation:flyMe .28s ease-out}
+.card.fly-partner{animation:flyPartner .28s ease-out}
+.card.fly-left{animation:flyLeft .28s ease-out}
+.card.fly-right{animation:flyRight .28s ease-out}
+@keyframes collectCard{to{transform:translate(var(--tx,0px),var(--ty,0px)) scale(.55);opacity:0}}
+.card.collect{animation:collectCard .55s ease-in forwards}
 /* hand — flush to bottom edge, NO backdrop */
 .hand-zone{position:absolute;left:50%;transform:translateX(-50%);width:max-content;max-width:calc(100% - 8px);bottom:2px;z-index:30;background:none;border:none;box-shadow:none;padding:6px 10px 4px}
 .hand{display:flex;direction:ltr;align-items:flex-end;min-height:calc(var(--cardh) + 14px);padding-top:12px}
-.hand .card{margin-left:-34px;cursor:pointer;transition:transform .12s ease}
+.hand .card{margin-left:var(--overlap);cursor:pointer;transition:transform .12s ease}
 .hand .card:first-child{margin-left:0}
 .hand .card:hover{transform:translateY(-6px)}
 .hand .card.sel{transform:translateY(-16px);box-shadow:0 0 0 3px var(--gold),0 10px 18px rgba(0,0,0,.45)}
@@ -127,8 +153,8 @@ label.f input[type=checkbox]{width:20px;height:20px;flex:0 0 auto}
 .lasttrick{position:absolute;top:10px;right:62px;z-index:8;display:flex;gap:2px;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.18);border-radius:9px;padding:3px 4px;min-height:46px;align-items:center}
 .lasttrick .empty{width:27px;height:38px;border:1.2px dashed rgba(255,255,255,.25);border-radius:5px}
 #emojiBtn{position:absolute;top:10px;right:10px;z-index:9;width:44px;height:44px;border-radius:50%;font-size:21px;padding:0;background:rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.25)}
-.emoji-tray{position:absolute;top:62px;right:10px;z-index:40;background:rgba(10,25,16,.95);border:1px solid var(--line);border-radius:14px;padding:8px;display:grid;grid-template-columns:repeat(6,40px);gap:4px;box-shadow:0 10px 26px rgba(0,0,0,.5)}
-.emoji-tray button{background:rgba(255,255,255,.07);font-size:20px;padding:5px 0;border-radius:9px}
+.emoji-tray{position:absolute;top:62px;right:10px;z-index:40;background:rgba(10,25,16,.95);border:1px solid var(--line);border-radius:14px;padding:8px;display:grid;grid-template-columns:repeat(6,44px);gap:4px;box-shadow:0 10px 26px rgba(0,0,0,.5)}
+.emoji-tray button{background:rgba(255,255,255,.07);font-size:22px;padding:9px 0;border-radius:9px;min-height:44px}
 /* passing pill — under the right opponent, passing phase only */
 .pass-pill{position:absolute;right:8px;bottom:136px;z-index:7;background:rgba(0,0,0,.55);border:1.5px solid var(--gold);color:#fff;border-radius:999px;padding:6px 13px;font-size:14px;font-weight:800;box-shadow:0 4px 12px rgba(0,0,0,.4)}
 .pass-pill b{color:var(--gold)}
@@ -155,24 +181,54 @@ table.score th,table.score td{border-bottom:1px solid var(--line);padding:6px 4p
 .vs .big{font-size:34px;font-weight:900}
 .toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:rgba(8,22,14,.94);border:1px solid var(--gold2);color:#fff;border-radius:999px;padding:8px 18px;font-weight:800;z-index:200;box-shadow:0 8px 22px rgba(0,0,0,.5)}
 @media (max-width:640px){
-  :root{--cardw:55px;--cardh:78px;--trickw:67px;--trickh:94px}
-  .table{min-height:500px;border-radius:20px}
+  .table{border-radius:20px}
   .seat{width:62px}
   .seat.corner{top:6px;left:6px}.seat.top{top:6px}.seat.left{left:4px}.seat.right{right:4px}
-  .avwrap{width:44px;height:44px}.avring .inner{font-size:22px}
   .seat .sname{font-size:11px;max-width:62px}
-  .hand .card{margin-left:-31px}
-  /* zone narrowed so played cards keep >=26px clear of the left/right seat blocks at 390px wide */
-  .trick{width:min(336px,calc(100% - 168px));min-height:216px}
   #snapBtn{bottom:126px;left:6px}
   #chatBtn{bottom:126px;right:6px}
-  .seat .bubble{top:48px;font-size:22px}
+  .seat .bubble{font-size:22px}
   .snap-power{bottom:182px;left:6px}
   .pass-pill{bottom:128px;right:6px;font-size:13px}
   .lasttrick{right:58px;top:6px}
   #emojiBtn{top:6px;right:6px}
   .chip{font-size:12px;padding:4px 8px}
   .topbar button{padding:6px 9px;font-size:14px}
+}
+/* ---------- landscape: the game is landscape-only ---------- */
+@media (orientation: landscape){
+  .screen{max-width:640px}
+  #matchView{max-width:1200px;padding:4px 8px 6px}
+  .topbar{padding:2px 2px 5px}
+  .topbar button{padding:5px 10px;font-size:14px}
+  .chip{font-size:12px;padding:4px 9px}
+  #myScoreChip{font-size:14px;padding:4px 10px}
+  .table{height:calc(100dvh - 46px);min-height:0;border-radius:22px}
+  .seat{width:78px}
+  .seat.corner{top:6px;left:8px}
+  .seat.top{top:6px}
+  .seat.left{left:8px}
+  .seat.right{right:8px}
+  .seat .sname{font-size:11.5px;max-width:78px}
+  .trick{height:min(46%,calc(100% - var(--avsize) - var(--cardh) - 84px));min-height:0;width:min(430px,calc(100% - 230px))}
+  .lasttrick{top:6px;right:58px}
+  #emojiBtn{top:6px;right:8px;width:42px;height:42px}
+  .emoji-tray{top:56px;right:8px}
+  .pass-pill{bottom:calc(var(--cardh) + 44px);right:8px;font-size:13px}
+  #snapBtn{bottom:8px;left:8px;width:46px;height:46px}
+  #chatBtn{bottom:8px;right:8px;width:46px;height:46px}
+  .snap-power{bottom:62px;left:8px}
+  .round-banner{top:12%}
+  .chat-drawer{width:min(360px,44vw)}
+}
+/* ---------- rotate-to-landscape overlay (portrait phones) ---------- */
+.rotate-overlay{display:none;position:fixed;inset:0;z-index:300;background:#0a1f14;flex-direction:column;align-items:center;justify-content:center;gap:14px;text-align:center;padding:24px}
+.rotate-overlay .ro-icon{font-size:64px;animation:roSpin 1.6s ease-in-out infinite}
+@keyframes roSpin{0%,100%{transform:rotate(0deg)}50%{transform:rotate(90deg)}}
+.rotate-overlay .ro-txt{font-size:22px;font-weight:900}
+.rotate-overlay .ro-sub{color:var(--muted);font-size:15px}
+@media (orientation: portrait) and (max-width: 900px){
+  .rotate-overlay{display:flex}
 }
 </style>
 </head>
@@ -334,6 +390,7 @@ table.score th,table.score td{border-bottom:1px solid var(--line);padding:6px 4p
       <option value="bigLeft">الكبير على الشمال</option>
     </select>
   </label>
+  <label class="f" style="margin-bottom:12px"><input type="checkbox" id="inSound" checked> 🔊 الصوت</label>
   <button class="ghost" id="btnMenuScore" style="width:100%">🏆 النتيجة</button>
   <button class="ghost" id="btnLeaveMatch" style="width:100%;margin-top:8px">سيب الماتش</button>
   <button id="btnCloseMenu" style="width:100%;margin-top:12px">اقفل</button>
@@ -363,6 +420,12 @@ table.score th,table.score td{border-bottom:1px solid var(--line);padding:6px 4p
   <div id="tmBody" class="small" style="text-align:start;white-space:pre-wrap;max-height:55vh;overflow:auto;line-height:1.9"></div>
   <button id="btnCloseText" style="width:100%;margin-top:12px">اقفل</button>
 </div></div>
+
+<div class="rotate-overlay" id="rotateOverlay">
+  <div class="ro-icon">📱</div>
+  <div class="ro-txt">دوّر موبايلك بالعرض عشان تلعب</div>
+  <div class="ro-sub">Rotate your phone to landscape to play</div>
+</div>
 
 <div id="toast" class="toast hidden"></div>
 
@@ -394,6 +457,93 @@ let lastChatCount = 0;
 let lastChatAt = 0;
 let chatInit = true;
 let ppSeat = null;
+let soundOn = localStorage.getItem('heart_sound') !== '0';
+let audioCtx = null, _noiseBuf = null;
+let _prevTrickLen = 0, _prevSnapped = new Set(), _soundPrimed = false;
+let _shownTrickKeys = new Set(), _collectKey = '', _collectTimer = null;
+let _lockTried = false;
+
+/* display name: never dotted — 2+ words become first name + first letter of second */
+function dispName(name){
+  const parts = (name||'').trim().split(/\s+/).filter(Boolean);
+  if(parts.length < 2) return parts[0] || '';
+  return parts[0] + ' ' + [...parts[1]][0] + '.';
+}
+
+/* ---------- sound: WebAudio-synthesized card throw + snap ---------- */
+function ac(){
+  if(!soundOn) return null;
+  try{
+    if(!audioCtx) audioCtx = new (window.AudioContext||window.webkitAudioContext)();
+    if(audioCtx.state === 'suspended') audioCtx.resume();
+    return audioCtx;
+  }catch(e){ return null; }
+}
+function noiseBuf(ctx){
+  if(_noiseBuf) return _noiseBuf;
+  const len = Math.floor(ctx.sampleRate * 0.5);
+  _noiseBuf = ctx.createBuffer(1, len, ctx.sampleRate);
+  const d = _noiseBuf.getChannelData(0);
+  for(let i=0;i<len;i++) d[i] = Math.random()*2-1;
+  return _noiseBuf;
+}
+function playCardSound(){
+  const ctx = ac(); if(!ctx) return;
+  const t = ctx.currentTime;
+  const src = ctx.createBufferSource(); src.buffer = noiseBuf(ctx);
+  const bp = ctx.createBiquadFilter(); bp.type = 'bandpass'; bp.Q.value = 0.9;
+  bp.frequency.setValueAtTime(900, t);
+  bp.frequency.exponentialRampToValueAtTime(2600, t+0.07);
+  bp.frequency.exponentialRampToValueAtTime(700, t+0.2);
+  const g = ctx.createGain();
+  g.gain.setValueAtTime(0.0001, t);
+  g.gain.exponentialRampToValueAtTime(0.5, t+0.06);
+  g.gain.exponentialRampToValueAtTime(0.0001, t+0.24);
+  src.connect(bp); bp.connect(g); g.connect(ctx.destination);
+  src.start(t); src.stop(t+0.26);
+  const src2 = ctx.createBufferSource(); src2.buffer = noiseBuf(ctx);
+  const lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 900;
+  const g2 = ctx.createGain();
+  g2.gain.setValueAtTime(0.0001, t+0.12);
+  g2.gain.exponentialRampToValueAtTime(0.35, t+0.14);
+  g2.gain.exponentialRampToValueAtTime(0.0001, t+0.22);
+  src2.connect(lp); lp.connect(g2); g2.connect(ctx.destination);
+  src2.start(t+0.12); src2.stop(t+0.24);
+}
+function playSnapSound(){
+  const ctx = ac(); if(!ctx) return;
+  const t = ctx.currentTime;
+  const src = ctx.createBufferSource(); src.buffer = noiseBuf(ctx);
+  const hp = ctx.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 1800;
+  const g = ctx.createGain();
+  g.gain.setValueAtTime(0.7, t);
+  g.gain.exponentialRampToValueAtTime(0.0001, t+0.12);
+  src.connect(hp); hp.connect(g); g.connect(ctx.destination);
+  src.start(t); src.stop(t+0.13);
+  const osc = ctx.createOscillator(); osc.type = 'sine';
+  osc.frequency.setValueAtTime(220, t);
+  osc.frequency.exponentialRampToValueAtTime(70, t+0.14);
+  const g2 = ctx.createGain();
+  g2.gain.setValueAtTime(0.5, t);
+  g2.gain.exponentialRampToValueAtTime(0.0001, t+0.16);
+  osc.connect(g2); g2.connect(ctx.destination);
+  osc.start(t); osc.stop(t+0.17);
+}
+
+/* ---------- landscape: fullscreen + orientation lock on touch devices (silent if unsupported) ---------- */
+function tryLandscapeLock(force){
+  try{
+    if(!window.matchMedia || !matchMedia('(pointer: coarse)').matches) return;
+    if(_lockTried && !force) return;
+    _lockTried = true;
+    const el = document.documentElement;
+    const p = el.requestFullscreen ? el.requestFullscreen() : Promise.resolve();
+    Promise.resolve(p).then(()=>{
+      if(screen.orientation && screen.orientation.lock) return screen.orientation.lock('landscape');
+    }).catch(()=>{});
+  }catch(e){}
+}
+document.addEventListener('pointerdown', ()=>{ ac(); if(roomCode) tryLandscapeLock(false); });
 
 function levelOf(xp){let l=1;for(let i=0;i<LEVEL_XP.length;i++)if(xp>=LEVEL_XP[i])l=i+1;return l;}
 function rankTxt(r){return RANK_TXT[r]||(''+r);}
@@ -402,7 +552,7 @@ function isRed(c){const s=c[0];return s==='H'||s==='D';}
 function cardEl(code, cls){
   const p = parseCard(code);
   const d = document.createElement('div');
-  d.className = 'card ' + (cls||'') + (isRed(code)?' red':'');
+  d.className = 'card ' + (cls||'') + (isRed(code)?' red':'') + (code==='S12'?' queen':'');
   d.dataset.card = code;
   d.innerHTML = '<div class="idx">'+rankTxt(p.r)+'<span class="su">'+SUIT_SYM[p.s]+'</span></div><div class="big">'+SUIT_SYM[p.s]+'</div><div class="idx2">'+rankTxt(p.r)+'<br>'+SUIT_SYM[p.s]+'</div>';
   return d;
@@ -482,6 +632,8 @@ async function leaveRoom(){
   chatInit = true; lastChatCount = 0; lastChatAt = 0; emojiFx = {};
   try{ await api('/api/leave-room', {token, code: roomCode}); }catch(e){}
   roomCode=''; st=null; lastVersion=-1; selPass.clear();
+  _soundPrimed = false; _prevTrickLen = 0; _prevSnapped = new Set();
+  _shownTrickKeys = new Set(); _collectKey = ''; clearTimeout(_collectTimer);
   $('endModal').classList.add('hidden');
   enterHome();
 }
@@ -530,7 +682,7 @@ function renderLobby(){
     const row = document.createElement('div'); row.className='seatrow';
     if(s.empty){ row.innerHTML = '<span class="av">⬜</span><span class="who" style="color:var(--muted)">مقعد فاضي</span>'; }
     else{
-      row.innerHTML = '<span class="av">'+s.avatar+'</span><span class="who">'+escapeHtml(s.name)+(s.bot?' 🤖':'')+'</span><span class="tag">'+(s.isMe?'انت':(s.bot?'بوت':'لاعب'))+(st.room.isHost && s.isMe?' · صاحب الغرفة':'')+'</span>';
+      row.innerHTML = '<span class="av">'+s.avatar+'</span><span class="who">'+escapeHtml(dispName(s.name))+(s.bot?' 🤖':'')+'</span><span class="tag">'+(s.isMe?'انت':(s.bot?'بوت':'لاعب'))+(st.room.isHost && s.isMe?' · صاحب الغرفة':'')+'</span>';
       row.style.cursor = 'pointer';
       row.addEventListener('click', ()=>openPlayer(s));
     }
@@ -565,20 +717,55 @@ function renderMatch(){
     d.innerHTML =
       '<div class="avwrap"><div class="avring" data-ring="'+s.seat+'"><div class="inner">'+s.avatar+'</div></div>'+
       '<div class="pts-badge">'+s.takenPts+'</div></div>'+
-      '<div class="sname">'+escapeHtml(s.name)+'</div>'+
+      '<div class="sname">'+escapeHtml(dispName(s.name))+'</div>'+
       (s.isMe ? '<div class="you-tag">أنت</div>' : (s.bot || s.botControlled ? '<div class="bot-tag">🤖 بوت</div>' : ''))+
       (s.snapped ? '<div class="bot-tag">💥</div>' : '') + hint;
     if(!s.empty) d.addEventListener('click', ()=>openPlayer(s));
     seatsBox.appendChild(d);
   }
-  // trick zone
+  // trick zone — new cards fly in from their player's side; a just-finished trick collects to the winner
   document.querySelectorAll('#trickZone .slot').forEach(sl=>{ sl.innerHTML=''; });
+  const newKeys = new Set();
   if(st.play){
+    const flyByRel = {0:'fly-me',1:'fly-right',2:'fly-partner',3:'fly-left'};
     for(const t of st.play.trick){
+      const key = t.seat+':'+t.card; newKeys.add(key);
       const slot = document.querySelector('#trickZone .slot[data-slot="'+rel(t.seat)+'"]');
-      if(slot) slot.appendChild(cardEl(t.card,'trickcard'));
+      if(slot){
+        const c = cardEl(t.card,'trickcard');
+        if(!_shownTrickKeys.has(key)) c.classList.add(flyByRel[rel(t.seat)]);
+        slot.appendChild(c);
+      }
     }
+    const lt = st.play.lastTrick;
+    const ltKey = lt ? lt.plays.map(t=>t.seat+':'+t.card).join(',')+'|'+lt.winner : '';
+    if(!ltKey) _collectKey = '';
+    if(ltKey && ltKey !== _collectKey && st.play.trick.length===0){
+      _collectKey = ltKey;
+      const off = {0:[0,110],1:[170,0],2:[0,-110],3:[-170,0]}[rel(lt.winner)];
+      for(const t of lt.plays){
+        const slot = document.querySelector('#trickZone .slot[data-slot="'+rel(t.seat)+'"]');
+        if(slot){
+          const c = cardEl(t.card,'trickcard collect');
+          c.style.setProperty('--tx', off[0]+'px'); c.style.setProperty('--ty', off[1]+'px');
+          slot.appendChild(c);
+        }
+      }
+      clearTimeout(_collectTimer);
+      _collectTimer = setTimeout(()=>{ if(st && st.phase!=='lobby') renderMatch(); }, 600);
+    }
+    // sounds: card throw on a new card, snap crack on a new snap
+    const tl = st.play.trick.length;
+    const snappedNow = new Set(st.seats.filter(s=>s.snapped).map(s=>s.seat));
+    if(_soundPrimed){
+      let newSnap = false;
+      snappedNow.forEach(s=>{ if(!_prevSnapped.has(s)) newSnap = true; });
+      if(newSnap) playSnapSound();
+      else if(tl > _prevTrickLen) playCardSound();
+    }
+    _prevTrickLen = tl; _prevSnapped = snappedNow; _soundPrimed = true;
   }
+  _shownTrickKeys = newKeys;
   // last trick box
   const lt = $('lastTrick'); lt.innerHTML = '';
   if(st.play && st.play.lastTrick){
@@ -695,7 +882,7 @@ function attachLongPress(el, code){
 /* timer rings — updated on a fast interval from server deadline */
 setInterval(()=>{
   if(!st || !st.play) return;
-  document.querySelectorAll('.avring').forEach(r=>{ r.style.background = 'conic-gradient(rgba(255,255,255,.12) 0deg, rgba(255,255,255,.12) 360deg)'; });
+  document.querySelectorAll('.avring').forEach(r=>{ r.style.background = 'conic-gradient(rgba(255,255,255,.18) 0deg, rgba(255,255,255,.18) 360deg)'; });
   const dl = st.play.turnDeadline, total = (st.play.timerSec||0)*1000;
   if(!dl || !total) return;
   let seat = null;
@@ -707,7 +894,7 @@ setInterval(()=>{
   const left = Math.max(0, dl - Date.now());
   const deg = Math.round(left/total*360);
   const col = left < 5000 ? '#e74c3c' : '#f5c542';
-  ring.style.background = 'conic-gradient('+col+' '+deg+'deg, rgba(255,255,255,.12) '+deg+'deg)';
+  ring.style.background = 'conic-gradient('+col+' '+deg+'deg, rgba(255,255,255,.18) '+deg+'deg)';
 }, 200);
 
 /* ---------- score / end ---------- */
@@ -807,7 +994,7 @@ function renderChat(scroll){
   for(const m of msgs){
     const d = document.createElement('div');
     d.className = 'chat-msg' + (st.me && m.seat === st.me.seat ? ' mine' : '');
-    d.innerHTML = '<div class="cav">'+m.avatar+'</div><div class="cbody"><div class="cname">'+escapeHtml(m.name)+'</div><div class="ctext">'+escapeHtml(m.text)+'</div></div>';
+    d.innerHTML = '<div class="cav">'+m.avatar+'</div><div class="cbody"><div class="cname">'+escapeHtml(dispName(m.name))+'</div><div class="ctext">'+escapeHtml(m.text)+'</div></div>';
     const mySeat = st.me ? st.me.seat : ((st.seats.find(s=>s.isMe) || {}).seat);
     if(m.seat !== mySeat && m.mid){ d.style.cursor = 'pointer'; d.title = 'دوس للإبلاغ عن الرسالة'; d.onclick = ()=> reportMsg(m); }
     box.appendChild(d);
@@ -826,7 +1013,7 @@ function openPlayer(s){
   if(!s || s.empty) return;
   ppSeat = s.seat;
   $('ppAvatar').textContent = s.avatar;
-  $('ppName').textContent = s.name + (s.bot ? ' 🤖' : '');
+  $('ppName').textContent = dispName(s.name) + (s.bot ? ' 🤖' : '');
   $('ppSub').textContent = s.isMe ? 'ده بروفايلك' :
     (s.bot ? 'بوت — مبيتعملوش إضافة' :
     ('⭐ المستوى ' + (s.level || 1) + (s.friend ? ' · صاحبك من قبل' : '')));
@@ -919,7 +1106,7 @@ function renderFriends(){
   $('friendsEmpty').style.display = fr.length ? 'none' : '';
   for(const f of fr){
     const row = document.createElement('div'); row.className = 'seatrow';
-    row.innerHTML = '<span class="av">'+f.avatar+'</span><span class="who">'+escapeHtml(f.name)+'</span><span class="tag">'+(f.online ? '🟢 أونلاين' : '⚪ مش موجود')+' · ⭐ '+f.level+'</span>';
+    row.innerHTML = '<span class="av">'+f.avatar+'</span><span class="who">'+escapeHtml(dispName(f.name))+'</span><span class="tag">'+(f.online ? '🟢 أونلاين' : '⚪ مش موجود')+' · ⭐ '+f.level+'</span>';
     list.appendChild(row);
   }
 }
@@ -929,19 +1116,20 @@ $('btnSaveProfile').onclick = saveProfile;
 $('btnEditProfile').onclick = ()=>{ $('inName').value = profile.name; pickedAvatar = profile.avatar; $('inTerms').checked = true; buildAvatarPick(); show('viewProfile'); };
 $('btnCreate').onclick = createRoom;
 $('btnJoin').onclick = joinRoom;
-$('btnStart').onclick = async ()=>{ try{ await api('/api/start-match', {token, code: roomCode}); pollOnce(); }catch(e){ $('lobbyErr').innerHTML = '<div class="err">'+e.message+'</div>'; } };
+$('btnStart').onclick = async ()=>{ tryLandscapeLock(true); try{ await api('/api/start-match', {token, code: roomCode}); pollOnce(); }catch(e){ $('lobbyErr').innerHTML = '<div class="err">'+e.message+'</div>'; } };
 $('btnLeaveLobby').onclick = leaveRoom;
 $('btnCopyCode').onclick = ()=>copyText(roomCode, 'اتنسخ الكود ✓');
 $('btnCopyLink').onclick = ()=>copyText((API_BASE || location.origin)+'/?room='+roomCode, 'اتنسخ لينك الدعوة ✓');
 $('btnScore').onclick = openScore;
 $('btnCloseScore').onclick = ()=>$('scoreModal').classList.add('hidden');
-$('btnMenu').onclick = ()=>{ $('inSort').value = sortMode; $('menuModal').classList.remove('hidden'); };
+$('btnMenu').onclick = ()=>{ $('inSort').value = sortMode; $('inSound').checked = soundOn; $('menuModal').classList.remove('hidden'); };
+$('inSound').onchange = e=>{ soundOn = e.target.checked; localStorage.setItem('heart_sound', soundOn ? '1' : '0'); if(soundOn) playCardSound(); };
 $('btnCloseMenu').onclick = ()=>$('menuModal').classList.add('hidden');
 $('inSort').onchange = e=>{ sortMode = e.target.value; localStorage.setItem('heart_sort', sortMode); if(st) renderHand(); };
 $('btnMenuScore').onclick = ()=>{ $('menuModal').classList.add('hidden'); openScore(); };
 $('btnLeaveMatch').onclick = ()=>{ $('menuModal').classList.add('hidden'); leaveRoom(); };
 $('btnEndHome').onclick = leaveRoom;
-$('btnRematch').onclick = async ()=>{ try{ await api('/api/start-match', {token, code: roomCode}); $('endModal').classList.add('hidden'); pollOnce(); }catch(e){ toast(e.message); } };
+$('btnRematch').onclick = async ()=>{ tryLandscapeLock(true); try{ await api('/api/start-match', {token, code: roomCode}); $('endModal').classList.add('hidden'); pollOnce(); }catch(e){ toast(e.message); } };
 $('chatBtn').onclick = openChat;
 $('btnLobbyChat').onclick = openChat;
 $('btnCloseChat').onclick = closeChat;
