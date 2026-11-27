@@ -372,6 +372,16 @@ const server = http.createServer(async (req, res) => {
       res.writeHead(200, Object.assign({ 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store' }, CORS)); res.end(html); return;
     }
     if (p === '/favicon.ico') { res.writeHead(204); res.end(); return; }
+    if (req.method === 'GET' && p === '/manifest.webmanifest') {
+      try { const mf = fs.readFileSync(path.join(ROOT, 'public', 'manifest.webmanifest')); res.writeHead(200, { 'Content-Type': 'application/manifest+json; charset=utf-8' }); res.end(mf); }
+      catch (e) { res.writeHead(404); res.end('not found'); }
+      return;
+    }
+    if (req.method === 'GET' && p === '/icon-512.png') {
+      try { const ic = fs.readFileSync(path.join(ROOT, 'public', 'icon-512.png')); res.writeHead(200, { 'Content-Type': 'image/png', 'Cache-Control': 'public, max-age=86400' }); res.end(ic); }
+      catch (e) { res.writeHead(404); res.end('not found'); }
+      return;
+    }
     if (req.method === 'GET' && (p === '/privacy' || p === '/terms' || p === '/delete-account')) {
       const file = p === '/privacy' ? 'privacy.html' : (p === '/terms' ? 'terms.html' : 'delete-account.html');
       try {
